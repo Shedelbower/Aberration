@@ -54,6 +54,7 @@ namespace Project
         //                          Unity Game Loop                           //
         ////////////////////////////////////////////////////////////////////////
         
+        
         private void Awake()
         {
             Initialize();
@@ -72,6 +73,12 @@ namespace Project
         private void FixedUpdate()
         {
             _playableEntities[_activeEntityIndex].OnFixedUpdate();
+        }
+
+        private void OnGUI()
+        {
+            GUI.Label(new Rect(10, 10, 500, 20), "Use arrow keys to move and space to swap entities");
+            GUI.Label(new Rect(10, 30, 500, 20), "(Rover physics not implemented yet)");
         }
     }
 }

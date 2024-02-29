@@ -1,6 +1,12 @@
 # Aberration
 
 
+## TODO
+1. [ ] Swap entities using numbers 1-n
+2. [ ] Custom rover physics for traveling on ground and up ramps
+3. [ ] Security camera zoom in/out
+
+
 ## Ideas
 
 ### Setup
