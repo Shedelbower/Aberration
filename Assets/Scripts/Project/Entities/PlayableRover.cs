@@ -30,13 +30,13 @@ namespace Project.Entities
 
         private void Move(float speed)
         {
-            float dist = speed * _linearSpeed * Time.deltaTime;
+            float dist = speed * _linearSpeed * Time.fixedDeltaTime;
             this.transform.position += this.transform.forward * dist;
         }
 
         private void Turn(float speed)
         {
-            float angle = speed * _rotateSpeed * Time.deltaTime;
+            float angle = speed * _rotateSpeed * Time.fixedDeltaTime;
             this.transform.rotation = Quaternion.AngleAxis(angle, this.transform.up) * this.transform.rotation;
         }
     }
