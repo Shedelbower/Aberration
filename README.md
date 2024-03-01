@@ -1,9 +1,27 @@
 # Aberration
 
+## Day Progress Logs
+
+### Day 1
+*build 0.01.0*
+- Setup default 3D URP project with git.
+- Brainstormed game ideas and chose one that I liked.
+- Created simple gray box scene with ProBuilder.
+- Implemented basic controllers for playable rovers and security camera.
+- Added some manager classes.
+- Performed first build test.
+
+### Day 2
+*build 0.02.0*
+- Replaced rover tank tread placeholders with 2-bone IK legs.
+- Implemented physics-based controller for rovers.
+  - Supports walking on uneven terrain and inclines.
+  - Needs more work to fix bugs and look more natural, but otherwise feels nice.
+
 
 ## TODO
 1. [ ] Swap entities using numbers 1-n
-2. [ ] Custom rover physics for traveling on ground and up ramps
+2. [x] Custom rover physics for traveling on ground and up ramps
 3. [ ] Security camera zoom in/out
 
 
@@ -34,3 +52,4 @@ A disaster has struck a containment facility housing all sort of dangerous anoma
 - Doors
 - Alarms (lure)
 - Lights
+- Lifts (requires two drones?)

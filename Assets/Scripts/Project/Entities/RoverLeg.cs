@@ -136,6 +136,7 @@ namespace Project.Entities
             
             var dir = vec / c;
 
+            // Law of Cosines
             float value = (a * a + c * c - b * b) / (2 * a * c);
             value = Mathf.Clamp(value, -1f, 1f);
             float theta = Mathf.Acos(value);

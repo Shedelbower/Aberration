@@ -78,7 +78,7 @@ namespace Project
         private void OnGUI()
         {
             GUI.Label(new Rect(10, 10, 500, 20), "Use arrow keys to move and space to swap entities");
-            GUI.Label(new Rect(10, 30, 500, 20), "(Rover physics not implemented yet)");
+            GUI.Label(new Rect(10, 30, 500, 20), "(Rover physics and IK implemented, but not great...)");
         }
     }
 }
