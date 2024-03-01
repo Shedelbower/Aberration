@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Project.Entities
 {
@@ -6,13 +7,15 @@ namespace Project.Entities
     {
         [Header("Settings")]
         [SerializeField] private float _linearSpeed = 1.0f;
-        [SerializeField] private float _rotateSpeed = 1.0f;
-        
+        [SerializeField] private float _angularSpeed = 1.0f;
+
+        [Header("References")] 
+        [SerializeField] private Rigidbody _rb;
+        [SerializeField] private RoverLeg[] _legs;
         
         private Vector2 _inputBuffer;
-
-
-
+        
+        
         public override void OnUpdate()
         {
             _inputBuffer = new Vector2(
@@ -23,21 +26,35 @@ namespace Project.Entities
 
         public override void OnFixedUpdate()
         {
-            Move(_inputBuffer.y);
-            Turn(_inputBuffer.x);
+            ApplyMovementForce();
+            ApplyMovementTorque();
+            ApplyLegForces();
             _inputBuffer = Vector2.zero;
         }
-
-        private void Move(float speed)
+        
+        private void ApplyMovementForce()
         {
-            float dist = speed * _linearSpeed * Time.fixedDeltaTime;
-            this.transform.position += this.transform.forward * dist;
+            float input = _inputBuffer.y;
+            float magnitude = input * _linearSpeed;
+            var force = this.transform.forward * magnitude;
+            _rb.AddForce(force, ForceMode.Force);
         }
 
-        private void Turn(float speed)
+        private void ApplyMovementTorque()
         {
-            float angle = speed * _rotateSpeed * Time.fixedDeltaTime;
-            this.transform.rotation = Quaternion.AngleAxis(angle, this.transform.up) * this.transform.rotation;
+            float input = _inputBuffer.x;
+            var magnitude = input * _angularSpeed;
+            var torque = this.transform.up * magnitude;
+            _rb.AddTorque(torque, ForceMode.Force);
         }
+
+        private void ApplyLegForces()
+        {
+            for (int li = 0; li < _legs.Length; li++)
+            {
+                _legs[li].ApplyForceToRover(_rb);
+            }
+        }
+        
     }
 }
