@@ -14,8 +14,16 @@ namespace Project.Entities
         [SerializeField] private RoverLeg[] _legs;
         
         private Vector2 _inputBuffer;
-        
-        
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            for (int li = 0; li < _legs.Length; li++)
+            {
+                _legs[li].Initialize();
+            }
+        }
+
         public override void OnUpdate()
         {
             _inputBuffer = new Vector2(
@@ -53,6 +61,11 @@ namespace Project.Entities
             for (int li = 0; li < _legs.Length; li++)
             {
                 _legs[li].ApplyForceToRover(_rb);
+            }
+            
+            for (int li = 0; li < _legs.Length; li++)
+            {
+                _legs[li].UpdateLegPosition(_rb.velocity);
             }
         }
         
