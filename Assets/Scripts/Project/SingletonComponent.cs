@@ -14,6 +14,7 @@ namespace Project
             {
                 Debug.LogError("Multiple instances of the singleton detected. Only one is allowed.");
             }
+
             _instance = this as T;
         }
     }

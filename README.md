@@ -18,12 +18,27 @@
   - Supports walking on uneven terrain and inclines.
   - Needs more work to fix bugs and look more natural, but otherwise feels nice.
 
+### Day 3
+*build 0.03.0*
+- Created a more interesting gray box level (doorways and rooms).
+- Prototyped cloaking visual effect on meshes.
+- Implemented signal networks with interactable switches.
+  - Includes power network support.
+
 
 ## TODO
 1. [ ] Swap entities using numbers 1-n
 2. [x] Custom rover physics for traveling on ground and up ramps
 3. [ ] Security camera zoom in/out
+4. [ ] Show two screens at a time and hot-swap them? At least when not in human mode?
 
+### Rover
+1. [ ] Bonk into wall/player (add rotational impulse and/or bounce)
+2. [ ] Add auto follow mode to follow player when human.
+3. [ ] Add directional consideration to step threshold to lower sideways distance when turning
+4. [ ] Use speed of should point for speed calculations to account for turning while standing still
+5. [ ] Align lower and upper leg segments so they don't clip.
+6. [ ] Press, hold, and release space to wind up a jump?
 
 ## Ideas
 
