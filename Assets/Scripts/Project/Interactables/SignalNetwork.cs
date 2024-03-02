@@ -1,44 +1,24 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace Project.Interactables
 {
-    public class SignalNetwork : MonoBehaviour
+    public class SignalNetwork<T> : MonoBehaviour where T : IEquatable<T>
     {
-        public int SignalValue => _signalValue;
-
-        [SerializeField] private int _signalValue;
+        public delegate void SignalValueEvent(T value);
+        public event SignalValueEvent OnSignalChanged;
         
-        private List<ISignalReceiver> _receivers;
+        public T SignalValue => _signalValue;
+        [SerializeField] private T _signalValue;
 
-        private bool _initialized = false;
-        
-        public void Initialize()
+        public void SetAndBroadcastSignal(T value)
         {
-            _initialized = true;
-            _receivers = new List<ISignalReceiver>();
-        }
-
-        public void RegisterReceiver(ISignalReceiver receiver)
-        {
-            if (!_initialized) { Initialize(); }
+            // Only broadcast signal if it changed
+            if (_signalValue.Equals(value)) { return; }
             
-            _receivers.Add(receiver);
-            receiver.SetInitialSignalValue(_signalValue);
-        }
-
-        public void SetAndBroadcastSignal(int value)
-        {
-            if (!_initialized) { Initialize(); }
-            
-            if (_signalValue == value) { return; } // Only broadcast signal if it changed
-
             _signalValue = value;
             
-            for (int ri = 0; ri < _receivers.Count; ri++)
-            {
-                _receivers[ri].OnSignalValueChanged(_signalValue);
-            }
+            OnSignalChanged?.Invoke(_signalValue);
         }
     }
 }

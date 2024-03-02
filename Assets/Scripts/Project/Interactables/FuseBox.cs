@@ -11,8 +11,7 @@ namespace Project.Interactables
         
         public override bool TryBeginInteraction()
         {
-            var powerSignal = _powerNetwork.SignalValue == 0 ? 1 : 0;
-            _powerNetwork.SetAndBroadcastSignal(powerSignal);
+            _powerNetwork.SetAndBroadcastSignal(!_powerNetwork.SignalValue);
             return true;
         }
 

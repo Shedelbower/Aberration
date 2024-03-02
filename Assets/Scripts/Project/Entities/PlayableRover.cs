@@ -90,7 +90,6 @@ namespace Project.Entities
 
         private void TryInteract()
         {
-            Debug.Log("Trying to interact...");
             var origin = _interactionCheck.position;
             var radius = 0.5f;
             var mask = LayerMask.GetMask("Interactable");
@@ -99,13 +98,11 @@ namespace Project.Entities
 
             if (colliders.Length > 0)
             {
-                Debug.Log("Hit Something...");
                 var collider = colliders[0];
                 var interactable = collider.gameObject.GetComponentInParent<Interactable>();
 
                 if (interactable.TryBeginInteraction())
                 {
-                    Debug.Log("Interacted!");
                     // TODO...
                 }
             }

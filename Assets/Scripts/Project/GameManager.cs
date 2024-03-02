@@ -80,7 +80,8 @@ namespace Project
         private void OnGUI()
         {
             GUI.Label(new Rect(10, 10, 500, 20), "Use arrow keys to move and space to swap entities");
-            GUI.Label(new Rect(10, 30, 500, 20), "(Rover physics and IK implemented, but not great...)");
+            GUI.Label(new Rect(10, 30, 600, 20), "E to interact with switches and LShift to \"cloak\" white cylinder");
+            GUI.Label(new Rect(10, 50, 500, 20), "(Rover physics and IK implemented, but not great...)");
         }
     }
 }

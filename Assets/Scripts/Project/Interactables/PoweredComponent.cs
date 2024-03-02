@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace Project.Interactables
 {
-    public abstract class PoweredComponent : MonoBehaviour, ISignalReceiver
+    public abstract class PoweredComponent : MonoBehaviour
     {
-        [SerializeField] protected SignalNetwork _powerNetwork;
+        [SerializeField] protected SignalNetwork<bool> _powerNetwork;
         
-        public bool IsPowered => _powerNetwork.SignalValue > 0;
+        public bool IsPowered => _powerNetwork.SignalValue;
 
         private bool _initialized = false;
 
@@ -21,24 +21,21 @@ namespace Project.Interactables
         protected virtual void Initialize()
         {
             _initialized = true;
-            _powerNetwork.RegisterReceiver(this);
+            _powerNetwork.OnSignalChanged += OnSignalValueChanged;
+            
+            SetInitialPoweredState(_powerNetwork.SignalValue);
         }
 
-        public void OnSignalValueChanged(int value)
+        public void OnSignalValueChanged(bool value)
         {
-            if (value <= 0)
-            {
-                this.OnPoweredDown();
-            }
-            else
+            if (value)
             {
                 this.OnPoweredUp();
             }
-        }
-
-        public void SetInitialSignalValue(int value)
-        {
-            SetInitialPoweredState(value > 0);
+            else
+            {
+                this.OnPoweredDown();
+            }
         }
 
         protected abstract void SetInitialPoweredState(bool isPowered);

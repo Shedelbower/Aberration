@@ -2,35 +2,31 @@ using UnityEngine;
 
 namespace Project.Interactables
 {
-    public abstract class PoweredInteractable : Interactable, ISignalReceiver
+    public abstract class PoweredInteractable : Interactable
     {
-        [SerializeField] protected SignalNetwork _powerNetwork;
+        [SerializeField] protected SignalNetwork<bool> _powerNetwork;
 
-        public bool IsPowered => _powerNetwork.SignalValue > 0;
-
+        public bool IsPowered => _powerNetwork.SignalValue;
+        
         protected override void Initialize()
         {
             base.Initialize();
-            _powerNetwork.RegisterReceiver(this);
+            _powerNetwork.OnSignalChanged += OnSignalValueChanged;
+            SetInitialPoweredState(_powerNetwork.SignalValue);
         }
 
-        public void OnSignalValueChanged(int value)
+        public void OnSignalValueChanged(bool value)
         {
-            if (value <= 0)
-            {
-                this.OnPoweredDown();
-            }
-            else
+            if (value)
             {
                 this.OnPoweredUp();
             }
+            else
+            {
+                this.OnPoweredDown();
+            }
         }
-
-        public void SetInitialSignalValue(int value)
-        {
-            SetInitialPoweredState(value > 0);
-        }
-
+        
         protected abstract void SetInitialPoweredState(bool isPowered);
         protected abstract void OnPoweredUp();
         protected abstract void OnPoweredDown();
