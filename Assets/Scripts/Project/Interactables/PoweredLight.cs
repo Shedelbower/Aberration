@@ -2,26 +2,21 @@ using UnityEngine;
 
 namespace Project.Interactables
 {
-    public class PoweredLight : MonoBehaviour, IPowered
+    public class PoweredLight : PoweredComponent
     {
         [SerializeField] private Light _light;
-
-        private void Initialize()
-        {
-            
-        }
-
-        public void SetInitialPoweredState(bool isPowered)
+        
+        protected override void SetInitialPoweredState(bool isPowered)
         {
             _light.enabled = isPowered;
         }
 
-        public void OnPoweredUp()
+        protected override void OnPoweredUp()
         {
             _light.enabled = true;
         }
         
-        public void OnPoweredDown()
+        protected override void OnPoweredDown()
         {
             _light.enabled = false;
         }

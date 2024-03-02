@@ -5,10 +5,19 @@ namespace Project.Interactables
     public abstract class Interactable : MonoBehaviour
     {
         public delegate void InteractionCallback(Interactable interactable);
-
         public event InteractionCallback OnInteractionCompleted;
+
+        private bool _initialized = false;
+
+        protected virtual void Awake()
+        {
+            if (!_initialized)
+            {
+                Initialize();
+            }
+        }
         
-        public virtual void Initialize() { }
+        protected virtual void Initialize() { }
 
         public virtual void CancelInteraction() { }
 

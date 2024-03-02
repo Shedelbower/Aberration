@@ -8,6 +8,7 @@ namespace Project
     {
         [Header("Managers")]
         [SerializeField] private CameraManager _cameraManager;
+        [SerializeField] private LevelManager _levelManager;
         
         [Header("References")]
         [SerializeField] private PlayableEntity[] _playableEntities;
@@ -17,6 +18,7 @@ namespace Project
         private void Initialize()
         {
             _cameraManager.Initialize();
+            _levelManager.Initialize();
 
             for (int ei = 0; ei < _playableEntities.Length; ei++)
             {

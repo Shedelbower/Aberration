@@ -2,15 +2,25 @@ using UnityEngine;
 
 namespace Project.Interactables
 {
-    public abstract class PoweredInteractable : Interactable, ISignalReceiver
+    public abstract class PoweredComponent : MonoBehaviour, ISignalReceiver
     {
         [SerializeField] protected SignalNetwork _powerNetwork;
-
+        
         public bool IsPowered => _powerNetwork.SignalValue > 0;
 
-        protected override void Initialize()
+        private bool _initialized = false;
+
+        protected virtual void Awake()
         {
-            base.Initialize();
+            if (!_initialized)
+            {
+                Initialize();
+            }
+        }
+        
+        protected virtual void Initialize()
+        {
+            _initialized = true;
             _powerNetwork.RegisterReceiver(this);
         }
 
@@ -35,11 +45,5 @@ namespace Project.Interactables
         protected abstract void OnPoweredUp();
         protected abstract void OnPoweredDown();
         
-        
-        public override bool TryBeginInteraction()
-        {
-            // Can only interact when powered
-            return this.IsPowered;
-        }
     }
 }

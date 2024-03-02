@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Project.Interactables
@@ -8,38 +9,33 @@ namespace Project.Interactables
 
         [SerializeField] private int _signalValue;
         
-        [SerializeField] private GameObject[] _recieverGameObjects;
-        
-        private ISignalReceiver[] _receivers;
+        private List<ISignalReceiver> _receivers;
 
-        private void Awake()
-        {
-            Initialize(); // TODO: Handle initialization explicitly in a manager?
-        }
+        private bool _initialized = false;
         
         public void Initialize()
         {
-            _receivers = new ISignalReceiver[_recieverGameObjects.Length];
+            _initialized = true;
+            _receivers = new List<ISignalReceiver>();
+        }
+
+        public void RegisterReceiver(ISignalReceiver receiver)
+        {
+            if (!_initialized) { Initialize(); }
             
-            for (int ri = 0; ri < _receivers.Length; ri++)
-            {
-                _receivers[ri] = _recieverGameObjects[ri].GetComponent<ISignalReceiver>();
-                if (_receivers[ri] == null)
-                {
-                    Debug.LogError($"Game object {_recieverGameObjects[ri].name} has no component that implements" +
-                                   $"the interface ISignalReceiver");
-                }
-                _receivers[ri].SetInitialSignalValue(_signalValue);
-            }
+            _receivers.Add(receiver);
+            receiver.SetInitialSignalValue(_signalValue);
         }
 
         public void SetAndBroadcastSignal(int value)
         {
+            if (!_initialized) { Initialize(); }
+            
             if (_signalValue == value) { return; } // Only broadcast signal if it changed
 
             _signalValue = value;
             
-            for (int ri = 0; ri < _receivers.Length; ri++)
+            for (int ri = 0; ri < _receivers.Count; ri++)
             {
                 _receivers[ri].OnSignalValueChanged(_signalValue);
             }

@@ -1,11 +1,9 @@
 using UnityEngine;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace Project.Interactables
 {
-    public class FuseBox : Interactable, IPowered
+    public class FuseBox : PoweredInteractable
     {
-        [SerializeField] private PowerGrid _grid;
         [SerializeField] private MeshRenderer _indicatorRenderer;
         
         [SerializeField] private Material _poweredIndicatorMaterial;
@@ -13,23 +11,22 @@ namespace Project.Interactables
         
         public override bool TryBeginInteraction()
         {
-            //if (!base.TryBeginInteraction()) { return false; }
-            
-            _grid.TogglePowered();
+            var powerSignal = _powerNetwork.SignalValue == 0 ? 1 : 0;
+            _powerNetwork.SetAndBroadcastSignal(powerSignal);
             return true;
         }
 
-        public void OnPoweredDown()
+        protected override void OnPoweredDown()
         {
             SetAppearance(false);
         }
         
-        public void OnPoweredUp()
+        protected override void OnPoweredUp()
         {
             SetAppearance(true);
         }
         
-        public void SetInitialPoweredState(bool isPowered)
+        protected override void SetInitialPoweredState(bool isPowered)
         {
             SetAppearance(isPowered);
         }
