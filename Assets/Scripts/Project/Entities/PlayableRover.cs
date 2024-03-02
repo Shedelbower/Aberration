@@ -1,3 +1,4 @@
+using Project.Interactables;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -12,8 +13,10 @@ namespace Project.Entities
         [Header("References")] 
         [SerializeField] private Rigidbody _rb;
         [SerializeField] private RoverLeg[] _legs;
+        [SerializeField] private Transform _interactionCheck;
         
         private Vector2 _inputBuffer;
+        private bool _inputBufferInteraction = false;
 
         public override void Initialize()
         {
@@ -30,6 +33,8 @@ namespace Project.Entities
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")
             );
+
+            _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
         }
 
         public override void OnFixedUpdate()
@@ -37,7 +42,13 @@ namespace Project.Entities
             ApplyMovementForce();
             ApplyMovementTorque();
             ApplyLegForces();
+            HandleInteraction();
+            
+            
+            // Reset input buffers now that they've been used to avoid double counting them.
+            
             _inputBuffer = Vector2.zero;
+            _inputBufferInteraction = false;
         }
         
         private void ApplyMovementForce()
@@ -66,6 +77,37 @@ namespace Project.Entities
             for (int li = 0; li < _legs.Length; li++)
             {
                 _legs[li].UpdateLegPosition(_rb.velocity);
+            }
+        }
+
+        private void HandleInteraction()
+        {
+            if (_inputBufferInteraction)
+            {
+                TryInteract();
+            }
+        }
+
+        private void TryInteract()
+        {
+            Debug.Log("Trying to interact...");
+            var origin = _interactionCheck.position;
+            var radius = 0.5f;
+            var mask = LayerMask.GetMask("Interactable");
+
+            var colliders = Physics.OverlapSphere(origin, radius, mask, QueryTriggerInteraction.Ignore);
+
+            if (colliders.Length > 0)
+            {
+                Debug.Log("Hit Something...");
+                var collider = colliders[0];
+                var interactable = collider.gameObject.GetComponentInParent<Interactable>();
+
+                if (interactable.TryBeginInteraction())
+                {
+                    Debug.Log("Interacted!");
+                    // TODO...
+                }
             }
         }
         
