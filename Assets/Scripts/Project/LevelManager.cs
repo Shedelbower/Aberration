@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Project
 {
-    public class LevelManager : SingletonComponent<GameManager>
+    public class LevelManager : SingletonComponent<LevelManager>
     {
         public void Initialize()
         {
