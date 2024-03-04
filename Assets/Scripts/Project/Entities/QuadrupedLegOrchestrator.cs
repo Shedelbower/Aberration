@@ -7,18 +7,19 @@ namespace Project.Entities
 {
     public class QuadrupedLegOrchestrator : MonoBehaviour
     {
+        private static readonly float RAGDOLL_TIMER_DURATION = 0.5f; // amount of time with 0 legs grounded before going ragdoll
+        
         [Header("Settings")]
         [SerializeField] private float _linearSpeed = 20f;
         [SerializeField] private float _angularSpeed = 4f;
         
         [SerializeField] private float _fullyExtendedLegLength = 1f;
-        [SerializeField] private float _targetHeightPercentage = 0.8f;
+        [SerializeField] private float _targetHeightPercentageStanding = 0.8f;
+        [SerializeField] private float _targetHeightPercentageCrawling = 0.4f;
         [SerializeField] private float _legLiftPower = 40f;
         [SerializeField] private float _gravity = 9.8f;
         [SerializeField] private float _legTiltPower = 1f;
         [SerializeField] private float _legRollPower = 40f;
-        
-        [SerializeField] private bool _isRagdoll;
         
         [Header("Component References")]
         
@@ -27,6 +28,11 @@ namespace Project.Entities
         [SerializeField] private QuadrupedLeg _legBL;
         [SerializeField] private QuadrupedLeg _legBR;
         
+        [Header("Debug")]
+        
+        [SerializeField] private float _targetHeightPercentage = 0.8f;
+        [SerializeField] private bool _isRagdoll;
+        [SerializeField] private bool _isCrawling;
 
         public float InputLinearMovement { get; set; }
         public float InputAngularMovement { get; set; }
@@ -35,15 +41,13 @@ namespace Project.Entities
         [SerializeField] private float[] _legSmoothGrounded;
         [SerializeField] private float[] _legHeights;
         private int _groundedLegCount;
+        private float _ragdollTimer;
         private QuadrupedLeg[] _legs;
         private Rigidbody _rb;
 
 
         private float _legSpacing;
-
         private float _defaultDrag;
-        // private Vector3[] _samplePoints;
-        // private float[] _sampleHeights;
         
         private Dictionary<QuadrupedLeg, QuadrupedLeg[]> _dependencies;
         
@@ -82,6 +86,11 @@ namespace Project.Entities
             {
                 SetRagdoll(!_isRagdoll);
             }
+            
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                SetCrawling(!_isCrawling);
+            }
         }
 
         public void OnFixedUpdate()
@@ -117,6 +126,24 @@ namespace Project.Entities
                 Debug.Log("[RAGDOLL END]");
                 _rb.drag = _defaultDrag;
                 _rb.useGravity = false;
+            }
+        }
+        
+        private void SetCrawling(bool isCrawling)
+        {
+            // TODO: have speed update to be slower when crawling
+            if (_isCrawling == isCrawling) { return; }
+
+            _isCrawling = isCrawling;
+            if (_isCrawling)
+            {
+                Debug.Log("[CRAWLING START]");
+                _targetHeightPercentage = _targetHeightPercentageCrawling;
+            }
+            else
+            {
+                Debug.Log("[CRAWLING END]");
+                _targetHeightPercentage = _targetHeightPercentageStanding;
             }
         }
     
@@ -160,7 +187,12 @@ namespace Project.Entities
             }
             else if (!_isRagdoll && _groundedLegCount == 0)
             {
-                SetRagdoll(true);
+                _ragdollTimer += deltaTime;
+                if (_ragdollTimer >= RAGDOLL_TIMER_DURATION)
+                {
+                    _ragdollTimer = 0.0f;
+                    SetRagdoll(true);
+                }
             }
 
         }
