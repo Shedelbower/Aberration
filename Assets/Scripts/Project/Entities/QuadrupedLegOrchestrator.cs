@@ -249,7 +249,8 @@ namespace Project.Entities
             }
             else // Use gravity to get the rigid body to go down
             {
-                _rb.AddForce(_gravity * Vector3.down, ForceMode.Acceleration);
+                float gt = Mathf.Clamp01(Mathf.Abs(heightDelta) / 0.25f); // have gravity slowly falloff to avoid jitter
+                _rb.AddForce(gt * _gravity * Vector3.down, ForceMode.Acceleration);
             }
             
             // Tilt Correction
