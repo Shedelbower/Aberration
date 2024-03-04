@@ -25,6 +25,19 @@
 - Implemented signal networks with interactable switches.
   - Includes power network support.
 
+### Day 4
+*build 0.04.1*
+- Modeled simple legs and body for quadruped drone.
+- Started major refactor of quadruped physics and IK.
+  - Attempted to more accurately simulate the quadruped, but this turned out to be a dead end due to the difficulty of making stable physics-based movement that is fun to control while also fully simulated.
+- Most of the day was probably a waist :(
+
+### Day 5
+
+- Reworked quadruped physics and movement to be more stable and fun, at the cost of being less physically accurate.
+- Improved procedural animations of quadruped to be more nuanced and realistic.
+  - Still need to cleanup code before replacing original Rover classes.
+
 
 ## TODO
 1. [ ] Swap entities using numbers 1-n
