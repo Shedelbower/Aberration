@@ -22,7 +22,7 @@ namespace Project.Entities
         public override void Initialize()
         {
             base.Initialize();
-            _legOrchestrator.Initialize();
+            _legOrchestrator.Initialize(_rb);
         }
 
         private void ResetPose()
@@ -32,26 +32,30 @@ namespace Project.Entities
         
         public override void OnUpdate()
         {
-            _inputBufferMovement = new Vector2(
-                Input.GetAxisRaw("Horizontal"),
-                Input.GetAxisRaw("Vertical")
-            );
+            // _inputBufferMovement = new Vector2(
+            //     Input.GetAxisRaw("Horizontal"),
+            //     Input.GetAxisRaw("Vertical")
+            // );
+            //
+            // _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
 
-            _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
+            _legOrchestrator.InputLinearMovement = Input.GetAxisRaw("Vertical");
+            _legOrchestrator.InputAngularMovement = Input.GetAxisRaw("Horizontal");
         }
 
         public override void OnFixedUpdate()
         {
-            var movementForce = this.transform.forward * _inputBufferMovement.y * _linearSpeed;
-            var torque = this.transform.up * _inputBufferMovement.x * _angularSpeed;
+            // var movementForce = this.transform.forward * _inputBufferMovement.y * _linearSpeed;
+            // var torque = this.transform.up * _inputBufferMovement.x * _angularSpeed;
 
             _legOrchestrator.OnFixedUpdate();
-            _legOrchestrator.ApplyForces(_rb, movementForce, torque, _legPowerScale);
+            
+            // _legOrchestrator.ApplyForces(_rb, movementForce, torque, _legPowerScale);
             
             
             // Reset input buffers now that they've been used to avoid double counting them.
-            _inputBufferMovement = Vector2.zero;
-            _inputBufferInteraction = false;
+            // _inputBufferMovement = Vector2.zero;
+            // _inputBufferInteraction = false;
         }
         
         

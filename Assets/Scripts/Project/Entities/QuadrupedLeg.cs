@@ -1,29 +1,28 @@
 using System;
 using UnityEngine;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace Project.Entities
 {
     public class QuadrupedLeg : MonoBehaviour
     {
         // TODO
-        private static readonly float UPPER_LENGTH = 0.5f;
-        private static readonly float LOWER_LENGTH = 0.5f;
+        // private static readonly float UPPER_LENGTH = 0.5f;
+        // private static readonly float LOWER_LENGTH = 0.5f;
         
-        private static readonly float FOOT_MIN_BASE_SPEED = 0.5f;
+        private static readonly float FOOT_MIN_BASE_SPEED = 1.0f;
         public static readonly float DESIRED_HEIGHT = 0.5f;
-        private static readonly float PREDICTION_TIME_INTERVAL = 0.7f;
+        private static readonly float PREDICTION_TIME_INTERVAL = 0.5f;
         
         private static readonly float TARGET_DISTANCE_THRESHOLD = 0.005f;
         
-        private static readonly float MAX_LATERAL_ANGLE = 20f * Mathf.Deg2Rad;
+        private static readonly float MAX_LATERAL_ANGLE = 30f * Mathf.Deg2Rad;
         private static readonly float MAX_WALK_SPEED = 2.0f;
         
         public float ExtensionPercentage => _currExtent / _maxLength;
         
         public Vector3 ShoulderPosition => _upperBone.position;
 
-        private struct DesiredFootLocation
+        private struct FootLocation
         {
             public Vector3 position;
             public bool isGrounded;
@@ -47,8 +46,8 @@ namespace Project.Entities
         private Vector3 _shoulderToFoot;
         private float _currExtent;
         private float _lateralAngle;
-        private DesiredFootLocation _desiredFootLocation;
-        private Vector3 _targetFootPosition;
+        private FootLocation _desiredFootLocation;
+        private FootLocation _targetFootLocation;
 
         private Vector3 _prevShoulderPosition;
         private Vector3 _shoulderVelocity;
@@ -65,17 +64,25 @@ namespace Project.Entities
 
         [SerializeField] private LegStatus _status;
         public LegStatus Status { get => _status; private set => _status = value; }
-        
-        public bool IsGrounded { get; private set; }
-        public bool ReachedDesiredLocation { get; private set; }
+
+        [SerializeField] private bool _isGrounded;
+        public bool IsGrounded
+        {
+            get => _isGrounded;
+            private set => _isGrounded = value;
+        }
+
+        private Rigidbody _rb;
 
         private bool _initialized = false;
         
-        public void Initialize()
+        public void Initialize(float fullyExtendedLength, Rigidbody rb)
         {
-            _upperLength = UPPER_LENGTH;
-            _lowerLength = LOWER_LENGTH;
-            _maxLength = _upperLength + _lowerLength;
+            _maxLength = fullyExtendedLength;
+            _upperLength = _maxLength * 0.5f;
+            _lowerLength = _upperLength;
+
+            _rb = rb;
 
             Reset();
 
@@ -87,7 +94,11 @@ namespace Project.Entities
             _prevShoulderPosition = this.ShoulderPosition;
 
             this.FootPosition = this.ShoulderPosition - this.transform.up * DESIRED_HEIGHT;
-            _targetFootPosition = this.FootPosition;
+            _targetFootLocation = new FootLocation()
+            {
+                position = this.FootPosition,
+                isGrounded = true
+            };
             
             this.ElbowPosition = (this.FootPosition + this.ShoulderPosition) / 2;
             
@@ -121,19 +132,21 @@ namespace Project.Entities
             _desiredFootLocation = CalculateDesiredFootLocation();
 
             float desiredDifference = float.MinValue;
-            desiredDifference = (_desiredFootLocation.position - _targetFootPosition).magnitude;
+            desiredDifference = (_desiredFootLocation.position - _targetFootLocation.position).magnitude;
             _desiredDistanceThreshold = CalculateDesiredDistanceThreshold();
 
             
             // Determine status
 
+            if (_currExtent > _maxLength || _lateralAngle > MAX_LATERAL_ANGLE)
+            {
+                this.Status = LegStatus.HasToStep;
+                return;
+            }
+
             if (this.IsGrounded)
             {
-                if (_currExtent > _maxLength || _lateralAngle > MAX_LATERAL_ANGLE)
-                {
-                    this.Status = LegStatus.HasToStep;
-                }
-                else if (_desiredFootLocation.isGrounded && desiredDifference > _desiredDistanceThreshold)
+                if (_desiredFootLocation.isGrounded && desiredDifference > _desiredDistanceThreshold)
                 {
                     this.Status = LegStatus.WantsToStep;
                 }
@@ -155,10 +168,21 @@ namespace Project.Entities
         //     return stepDistance / FOOT_BASE_SPEED;
         // }
 
-        private DesiredFootLocation CalculateDesiredFootLocation()
+        private FootLocation CalculateDesiredFootLocation()
         {
-            // Predict where the shoulder will be according to its most recent velocity
-            var predicatedShoulderPosition = this.ShoulderPosition + _shoulderVelocity * PREDICTION_TIME_INTERVAL;
+            // Predict where the shoulder will be according to its most recent velocity / rotation
+            var predicatedShoulderPosition = this.ShoulderPosition;
+            
+            // predict rotation
+            var rotSpeed = _rb.angularVelocity.magnitude;
+            var rotAxis = _rb.angularVelocity / rotSpeed;
+            var rot = Quaternion.AngleAxis(rotSpeed * PREDICTION_TIME_INTERVAL, rotAxis);
+            predicatedShoulderPosition = _rb.position + rot * (predicatedShoulderPosition - _rb.position);
+            
+            // predict linear movement
+            predicatedShoulderPosition += _shoulderVelocity * PREDICTION_TIME_INTERVAL;
+            
+            
             var downDir = -this.transform.up;
             
             // Cast ray down from predicated position
@@ -166,7 +190,7 @@ namespace Project.Entities
 
             if (Physics.Raycast(predicatedShoulderPosition, downDir, out hit, _maxLength, _walkableMask, QueryTriggerInteraction.Ignore))
             {
-                return new DesiredFootLocation()
+                return new FootLocation()
                 {
                     position = hit.point,
                     isGrounded = true
@@ -176,7 +200,7 @@ namespace Project.Entities
             // Try from current shoulder position
             if (Physics.Raycast(this.ShoulderPosition, downDir, out hit, _maxLength, _walkableMask, QueryTriggerInteraction.Ignore))
             {
-                return new DesiredFootLocation()
+                return new FootLocation()
                 {
                     position = hit.point,
                     isGrounded = true
@@ -184,7 +208,7 @@ namespace Project.Entities
             }
             
             // No valid spot found
-            return new DesiredFootLocation()
+            return new FootLocation()
             {
                 position = this.ShoulderPosition + downDir * 0.1f,
                 isGrounded = false
@@ -193,7 +217,7 @@ namespace Project.Entities
 
         public void BeginStep()
         {
-            _targetFootPosition = _desiredFootLocation.position;
+            _targetFootLocation = _desiredFootLocation;
             this.IsGrounded = false;
             this.Status = LegStatus.None;
         }
@@ -247,13 +271,13 @@ namespace Project.Entities
         {
             if (this.IsGrounded) { return; }
 
-            var targetVec = _targetFootPosition - this.FootPosition;
+            var targetVec = _targetFootLocation.position - this.FootPosition;
             var targetDist = targetVec.magnitude;
             
             if (targetDist <= TARGET_DISTANCE_THRESHOLD)
             {
                 // Reached target
-                this.IsGrounded = true;
+                this.IsGrounded = _targetFootLocation.isGrounded;
                 return;
             }
             
@@ -272,8 +296,8 @@ namespace Project.Entities
 
         public void UpdateLegIK()
         {
-            float a = UPPER_LENGTH;
-            float b = LOWER_LENGTH;
+            float a = _upperLength;
+            float b = _lowerLength;
             float c = _currExtent;
 
             if (c <= 0.0f)
@@ -325,7 +349,7 @@ namespace Project.Entities
             Gizmos.color = this.IsGrounded ? new Color(20f/255, 36f/255, 77f/255) : Color.blue;
             Gizmos.DrawCube(this.FootPosition, Vector3.one * 0.1f);
             Gizmos.color = Color.yellow;
-            Gizmos.DrawCube(_targetFootPosition, Vector3.one * 0.06f);
+            Gizmos.DrawCube(_targetFootLocation.position, Vector3.one * 0.06f);
             Gizmos.color = _desiredFootLocation.isGrounded ? Color.magenta : Color.cyan;
             Gizmos.DrawCube(_desiredFootLocation.position, Vector3.one * 0.06f);
             Gizmos.DrawWireSphere(_desiredFootLocation.position, _desiredDistanceThreshold);
