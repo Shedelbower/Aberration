@@ -362,16 +362,26 @@ namespace Project.Entities
             }
             var adir = Quaternion.AngleAxis(theta * Mathf.Rad2Deg, axis) * dir;
 
-            // var midPos = this.ShoulderPosition + adir * a;
             this.ElbowPosition = this.ShoulderPosition + adir * a;
-            
-            
-            // _upperBone.position = this.ShoulderPosition;
+
             _lowerBone.position = this.ElbowPosition;
             
             _upperBone.LookAt(_lowerBone.position);
-            // TODO: Fix rotation so lower and upper bone stay on same plane
             _lowerBone.LookAt(footIKPosition);
+
+            // Adjust the up vectors of both leg segments
+            var evec = (this.ElbowPosition - 0.5f * (this.ShoulderPosition + footIKPosition));
+
+            var upperProjUp = (evec - _upperBone.forward * Vector3.Dot(_upperBone.forward, evec)).normalized;
+            var lowerProjUp = (evec - _lowerBone.forward * Vector3.Dot(_lowerBone.forward, evec)).normalized;
+
+            lowerProjUp *= -1f; // Flip lower bone for zig-zag effect
+
+            var angleUpper = Vector3.SignedAngle(_upperBone.up, upperProjUp, _upperBone.forward);
+            var angleLower = Vector3.SignedAngle(_lowerBone.up, lowerProjUp, _lowerBone.forward);
+            
+            _upperBone.rotation = Quaternion.AngleAxis(angleUpper, _upperBone.forward) * _upperBone.rotation;
+            _lowerBone.rotation = Quaternion.AngleAxis(angleLower, _lowerBone.forward) * _lowerBone.rotation;
         }
         
         private void OnDrawGizmos()
