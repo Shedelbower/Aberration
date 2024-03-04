@@ -38,6 +38,8 @@ namespace Project.Entities
             // );
             //
             // _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
+            
+            _legOrchestrator.OnUpdate();
 
             _legOrchestrator.InputLinearMovement = Input.GetAxisRaw("Vertical");
             _legOrchestrator.InputAngularMovement = Input.GetAxisRaw("Horizontal");

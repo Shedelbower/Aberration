@@ -18,6 +18,8 @@ namespace Project.Entities
         [SerializeField] private float _legTiltPower = 1f;
         [SerializeField] private float _legRollPower = 40f;
         
+        [SerializeField] private bool _isRagdoll;
+        
         [Header("Component References")]
         
         [SerializeField] private QuadrupedLeg _legFL;
@@ -32,11 +34,14 @@ namespace Project.Entities
         // TODO: unserialize
         [SerializeField] private float[] _legSmoothGrounded;
         [SerializeField] private float[] _legHeights;
+        private int _groundedLegCount;
         private QuadrupedLeg[] _legs;
         private Rigidbody _rb;
 
 
         private float _legSpacing;
+
+        private float _defaultDrag;
         // private Vector3[] _samplePoints;
         // private float[] _sampleHeights;
         
@@ -71,18 +76,50 @@ namespace Project.Entities
             _dependencies.Add(_legBR, new []{ _legFR, _legBL});
         }
 
+        public void OnUpdate()
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                SetRagdoll(!_isRagdoll);
+            }
+        }
+
         public void OnFixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
-            
+
             UpdateLegStatuses(dt);
             OrchestrateSteps();
             UpdateLegPositions(dt);
 
-            ApplyForces(dt);
+            if (!_isRagdoll)
+            {
+                ApplyForces(dt);   
+            }
 
             ResetInputs();
         }
+
+        private void SetRagdoll(bool isRagdoll)
+        {
+            if (_isRagdoll == isRagdoll) { return; }
+
+            _isRagdoll = isRagdoll;
+            if (_isRagdoll)
+            {
+                Debug.Log("[RAGDOLL START]");
+                _defaultDrag = _rb.drag;
+                _rb.drag = 0.5f;
+                _rb.useGravity = true;
+            }
+            else
+            {
+                Debug.Log("[RAGDOLL END]");
+                _rb.drag = _defaultDrag;
+                _rb.useGravity = false;
+            }
+        }
+    
 
         private void ResetInputs()
         {
@@ -101,11 +138,14 @@ namespace Project.Entities
             // Update smooth grounded
             float gainSpeed = 10f;
             float lossSpeed = 0.5f;
+
+            _groundedLegCount = 0;
             
             for (int li = 0; li < _legs.Length; li++)
             {
                 if (_legs[li].IsGrounded)
                 {
+                    _groundedLegCount++;
                     _legSmoothGrounded[li] = Mathf.Clamp01(_legSmoothGrounded[li] + gainSpeed * deltaTime);
                 }
                 else
@@ -113,6 +153,16 @@ namespace Project.Entities
                     _legSmoothGrounded[li] = Mathf.Clamp01(_legSmoothGrounded[li] - lossSpeed * deltaTime);
                 }
             }
+
+            if (_isRagdoll && _groundedLegCount >= 2)
+            {
+                SetRagdoll(false);
+            }
+            else if (!_isRagdoll && _groundedLegCount == 0)
+            {
+                SetRagdoll(true);
+            }
+
         }
 
         private void OrchestrateSteps()

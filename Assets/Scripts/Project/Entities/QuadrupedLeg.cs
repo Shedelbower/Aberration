@@ -10,6 +10,7 @@ namespace Project.Entities
         // private static readonly float UPPER_LENGTH = 0.5f;
         // private static readonly float LOWER_LENGTH = 0.5f;
         
+        private static readonly float MAX_INCLINE_ANGLE_FOR_FOOT = 70f * Mathf.Deg2Rad;
         private static readonly float FOOT_MIN_BASE_SPEED = 1.0f;
         public static readonly float DESIRED_HEIGHT = 0.5f;
         private static readonly float PREDICTION_TIME_INTERVAL = 0.5f;
@@ -194,29 +195,42 @@ namespace Project.Entities
 
             if (Physics.Raycast(predicatedShoulderPosition, downDir, out hit, _maxLength, _walkableMask, QueryTriggerInteraction.Ignore))
             {
-                return new FootLocation()
+
+                if (IsValidGroundedFootPosition(hit.normal))
                 {
-                    position = hit.point,
-                    isGrounded = true
-                };
+                    return new FootLocation()
+                    {
+                        position = hit.point,
+                        isGrounded = true
+                    };   
+                }
             }
             
             // Try from current shoulder position
             if (Physics.Raycast(this.ShoulderPosition, downDir, out hit, _maxLength, _walkableMask, QueryTriggerInteraction.Ignore))
             {
-                return new FootLocation()
+                if (IsValidGroundedFootPosition(hit.normal))
                 {
-                    position = hit.point,
-                    isGrounded = true
-                };
+                    return new FootLocation()
+                    {
+                        position = hit.point,
+                        isGrounded = true
+                    };   
+                }
             }
             
             // No valid spot found
             return new FootLocation()
             {
-                position = this.ShoulderPosition + downDir * 0.1f,
+                position = this.ShoulderPosition + downDir * _maxLength * 0.25f,
                 isGrounded = false
             };
+        }
+
+        private bool IsValidGroundedFootPosition(Vector3 groundNormal)
+        {
+            float angleToVertical = Mathf.Acos(Vector3.Dot(groundNormal, Vector3.up));
+            return angleToVertical <= MAX_INCLINE_ANGLE_FOR_FOOT;
         }
 
         public void BeginStep()
@@ -296,7 +310,7 @@ namespace Project.Entities
             // hacky way to pickup foot
             float t = Mathf.Clamp01(targetDist / _targetFootLocation.initialTravelDistance);
             t = Mathf.Sin(t * Mathf.PI);
-            float maxLiftHeight = Mathf.Min(0.5f * targetDist, _maxLength * 0.25f);
+            float maxLiftHeight = Mathf.Min(0.3f * targetDist, _maxLength * 0.25f);
             _IKFootLiftOffset = (Vector3.up * t * maxLiftHeight);
             
             // Move towards target

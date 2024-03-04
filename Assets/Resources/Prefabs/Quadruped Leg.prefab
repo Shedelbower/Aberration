@@ -84,6 +84,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _status: 0
+  _isGrounded: 0
 --- !u!1 &7862702995249866910
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,17 +237,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
-        type: 3}
-      propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
         type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0236
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
+        type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.22
+      value: 0.2499
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
         type: 3}
@@ -292,6 +293,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: leg_lower
+      objectReference: {fileID: 0}
+    - target: {fileID: 1151388028547126963, guid: 9dfcaa050f3a82c46a3f5a043d83726e,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
