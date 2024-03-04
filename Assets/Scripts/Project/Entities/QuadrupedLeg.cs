@@ -10,7 +10,7 @@ namespace Project.Entities
         // private static readonly float UPPER_LENGTH = 0.5f;
         // private static readonly float LOWER_LENGTH = 0.5f;
         
-        private static readonly float MAX_INCLINE_ANGLE_FOR_FOOT = 70f * Mathf.Deg2Rad;
+        private static readonly float MAX_INCLINE_ANGLE_FOR_FOOT = 60f * Mathf.Deg2Rad;
         private static readonly float FOOT_MIN_BASE_SPEED = 1.0f;
         public static readonly float DESIRED_HEIGHT = 0.5f;
         private static readonly float PREDICTION_TIME_INTERVAL = 0.5f;
@@ -26,9 +26,18 @@ namespace Project.Entities
 
         private struct FootLocation
         {
+            public Vector3 GetPosition(Transform transform)
+            {
+                if (isLocal)
+                {
+                    return transform.localToWorldMatrix.MultiplyPoint(this.position);
+                }
+                return this.position;
+            }
             public Vector3 position;
             public bool isGrounded;
             public float initialTravelDistance;
+            public bool isLocal;
         }
 
         private Vector3 ElbowPosition
@@ -75,6 +84,13 @@ namespace Project.Entities
         {
             get => _isGrounded;
             private set => _isGrounded = value;
+        }
+        
+        [SerializeField] private bool _isAtTarget;
+        public bool IsAtTarget
+        {
+            get => _isAtTarget;
+            private set => _isAtTarget = value;
         }
 
         private Rigidbody _rb;
@@ -137,21 +153,19 @@ namespace Project.Entities
             _desiredFootLocation = CalculateDesiredFootLocation();
 
             float desiredDifference = float.MinValue;
-            desiredDifference = (_desiredFootLocation.position - _targetFootLocation.position).magnitude;
+            desiredDifference = (_desiredFootLocation.GetPosition(this.transform) - _targetFootLocation.GetPosition(this.transform)).magnitude;
             _desiredDistanceThreshold = CalculateDesiredDistanceThreshold();
 
             
             // Determine status
 
-            if (_currExtent > _maxLength || _lateralAngle > MAX_LATERAL_ANGLE)
-            {
-                this.Status = LegStatus.HasToStep;
-                return;
-            }
-
             if (this.IsGrounded)
             {
-                if (_desiredFootLocation.isGrounded && desiredDifference > _desiredDistanceThreshold)
+                if (_currExtent > _maxLength || _lateralAngle > MAX_LATERAL_ANGLE)
+                {
+                    this.Status = LegStatus.HasToStep;
+                }
+                else if (_desiredFootLocation.isGrounded && desiredDifference > _desiredDistanceThreshold)
                 {
                     this.Status = LegStatus.WantsToStep;
                 }
@@ -162,16 +176,24 @@ namespace Project.Entities
             }
             else
             {
-                // Only care if the target position is drastically different that desired position.
+                if (this.IsAtTarget && _desiredFootLocation.isGrounded)
+                {
+                    this.Status = LegStatus.HasToStep;
+                }
                 
-                this.Status = LegStatus.None;
+                // Only care if the target position is drastically different that desired position.
+                else if (_currExtent > _maxLength)
+                {
+                    this.Status = LegStatus.HasToStep;
+                    // // TODO: Prevent bug where the new desired position is right in front of the current point, causing
+                    // // it to stay extended. Maybe a cooldown to legs or something?
+                }
+                else
+                {
+                    this.Status = LegStatus.None;   
+                }
             }
         }
-
-        // private float EstimateStepTime(float stepDistance)
-        // {
-        //     return stepDistance / FOOT_BASE_SPEED;
-        // }
 
         private FootLocation CalculateDesiredFootLocation()
         {
@@ -222,7 +244,8 @@ namespace Project.Entities
             // No valid spot found
             return new FootLocation()
             {
-                position = this.ShoulderPosition + downDir * _maxLength * 0.25f,
+                position = Vector3.down * (0.12f * _maxLength),
+                isLocal = true,
                 isGrounded = false
             };
         }
@@ -236,9 +259,10 @@ namespace Project.Entities
         public void BeginStep()
         {
             _targetFootLocation = _desiredFootLocation;
-            _targetFootLocation.initialTravelDistance = (_targetFootLocation.position - this.FootPosition).magnitude;
+            _targetFootLocation.initialTravelDistance = (_targetFootLocation.GetPosition(this.transform) - this.FootPosition).magnitude;
             
             this.IsGrounded = false;
+            this.IsAtTarget = false;
             this.Status = LegStatus.None;
         }
         
@@ -296,14 +320,15 @@ namespace Project.Entities
         {
             if (this.IsGrounded) { return; }
 
-            var targetVec = _targetFootLocation.position - this.FootPosition;
+            var targetVec = _targetFootLocation.GetPosition(this.transform) - this.FootPosition;
             var targetDist = targetVec.magnitude;
             
             if (targetDist <= TARGET_DISTANCE_THRESHOLD)
             {
                 // Reached target
+                this.IsAtTarget = true;
                 this.IsGrounded = _targetFootLocation.isGrounded;
-                this.FootPosition = _targetFootLocation.position; // Snap to target
+                this.FootPosition = _targetFootLocation.GetPosition(this.transform); // Snap to target
                 return;
             }
             
@@ -396,10 +421,10 @@ namespace Project.Entities
             Gizmos.color = this.IsGrounded ? new Color(20f/255, 36f/255, 77f/255) : Color.blue;
             Gizmos.DrawCube(this.FootPosition, Vector3.one * 0.1f);
             Gizmos.color = Color.yellow;
-            Gizmos.DrawCube(_targetFootLocation.position, Vector3.one * 0.06f);
+            Gizmos.DrawCube(_targetFootLocation.GetPosition(transform), Vector3.one * 0.06f);
             Gizmos.color = _desiredFootLocation.isGrounded ? Color.magenta : Color.cyan;
-            Gizmos.DrawCube(_desiredFootLocation.position, Vector3.one * 0.06f);
-            Gizmos.DrawWireSphere(_desiredFootLocation.position, _desiredDistanceThreshold);
+            Gizmos.DrawCube(_desiredFootLocation.GetPosition(this.transform), Vector3.one * 0.06f);
+            Gizmos.DrawWireSphere(_desiredFootLocation.GetPosition(this.transform), _desiredDistanceThreshold);
             
             // Legs
             Gizmos.color = Color.gray;
