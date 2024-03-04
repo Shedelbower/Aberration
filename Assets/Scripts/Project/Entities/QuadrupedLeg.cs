@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 namespace Project.Entities
@@ -26,6 +27,7 @@ namespace Project.Entities
         {
             public Vector3 position;
             public bool isGrounded;
+            public float initialTravelDistance;
         }
 
         private Vector3 ElbowPosition
@@ -53,6 +55,8 @@ namespace Project.Entities
         private Vector3 _shoulderVelocity;
         private float _shoulderSpeed;
         private float _desiredDistanceThreshold;
+
+        private Vector3 _IKFootLiftOffset;
 
         public enum LegStatus
         {
@@ -218,6 +222,8 @@ namespace Project.Entities
         public void BeginStep()
         {
             _targetFootLocation = _desiredFootLocation;
+            _targetFootLocation.initialTravelDistance = (_targetFootLocation.position - this.FootPosition).magnitude;
+            
             this.IsGrounded = false;
             this.Status = LegStatus.None;
         }
@@ -267,6 +273,11 @@ namespace Project.Entities
             return Mathf.Max(FOOT_MIN_BASE_SPEED, _shoulderSpeed * 2f);
         }
 
+        private float GetNetFootSpeed(Vector3 targetDir)
+        {
+            return Vector3.Dot(targetDir, _shoulderVelocity) + GetBaseFootSpeed();
+        }
+
         public void UpdateFootPosition(float deltaTime)
         {
             if (this.IsGrounded) { return; }
@@ -278,14 +289,21 @@ namespace Project.Entities
             {
                 // Reached target
                 this.IsGrounded = _targetFootLocation.isGrounded;
+                this.FootPosition = _targetFootLocation.position; // Snap to target
                 return;
             }
             
+            // hacky way to pickup foot
+            float t = Mathf.Clamp01(targetDist / _targetFootLocation.initialTravelDistance);
+            t = Mathf.Sin(t * Mathf.PI);
+            float maxLiftHeight = Mathf.Min(0.5f * targetDist, _maxLength * 0.25f);
+            _IKFootLiftOffset = (Vector3.up * t * maxLiftHeight);
+            
             // Move towards target
             var targetDir = targetVec / targetDist;
-
+            
             // apply shoulder speed to base foot speed
-            var footSpeed = Vector3.Dot(targetDir, _shoulderVelocity) + GetBaseFootSpeed();
+            var footSpeed = GetNetFootSpeed(targetDir);
 
             // don't overshoot target
             var moveDist = Mathf.Min(footSpeed * deltaTime, targetDist);
@@ -296,23 +314,28 @@ namespace Project.Entities
 
         public void UpdateLegIK()
         {
+            var footIKPosition = this.FootPosition + _IKFootLiftOffset;
+            
+            var shoulderToFootIK = (footIKPosition - this.ShoulderPosition);
+            var currExtentIK = shoulderToFootIK.magnitude;
+            
             float a = _upperLength;
             float b = _lowerLength;
-            float c = _currExtent;
+            float c = currExtentIK;
 
             if (c <= 0.0f)
             {
                 return;
             }
             
-            var dir = _shoulderToFoot / c;
+            var dir = shoulderToFootIK / c;
 
             // Law of Cosines
             float value = (a * a + c * c - b * b) / (2 * a * c);
             value = Mathf.Clamp(value, -1f, 1f);
             float theta = Mathf.Acos(value);
             
-            var axis = Vector3.Cross(_shoulderToFoot / _currExtent, this.transform.forward);
+            var axis = Vector3.Cross(dir, this.transform.forward);
             axis = axis.normalized; // TODO: Is this needed?
             if (axis.sqrMagnitude == 0)
             {
@@ -334,7 +357,7 @@ namespace Project.Entities
             
             _upperBone.LookAt(_lowerBone.position);
             // TODO: Fix rotation so lower and upper bone stay on same plane
-            _lowerBone.LookAt(this.FootPosition);
+            _lowerBone.LookAt(footIKPosition);
         }
         
         private void OnDrawGizmos()
