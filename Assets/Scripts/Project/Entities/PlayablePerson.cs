@@ -30,6 +30,7 @@ namespace Project.Entities
         
         [SerializeField] private Transform _yawBase;
         [SerializeField] private Transform _pitchBase;
+        [SerializeField] private Transform _tablet;
         
         [Header("Debug")]
         [SerializeField] private bool _isGrounded;
@@ -90,7 +91,11 @@ namespace Project.Entities
 
         private void FixedUpdate()
         {
-            if (!this.IsActive) { return; }
+            if (!this.IsActive)
+            {
+                UpdateCamera(); // TODO: Remove
+                return;
+            }
 
             GroundCheckAndGravity();
             HandleMovement();
@@ -169,6 +174,12 @@ namespace Project.Entities
             tr.rotation = _pitchBase.rotation;
             var targetVec = _pitchBase.position - tr.position;
             tr.position += targetVec * 0.1f;
+            
+            // Update tablet position
+            Vector3 offset = PlayerManager.Instance.TabletIsShown ? Vector3.zero : Vector3.down;
+            _tablet.position = tr.position + tr.forward * 0.2f + offset;
+            _tablet.LookAt(tr.position);
+            
         }
 
         private void TryInteract()
@@ -188,6 +199,8 @@ namespace Project.Entities
                     interactable.TryBeginInteraction();
                 }
             }
+            
+            
             
         }
 

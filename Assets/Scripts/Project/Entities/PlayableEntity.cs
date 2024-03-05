@@ -9,26 +9,35 @@ namespace Project.Entities
         
         // TODO: Handle logic for when/if entity destroyed
 
+        [SerializeField] protected bool _isDefaultEntity;
         [SerializeField] protected Camera _camera;
 
         public virtual void Initialize()
         {
             this.IsActive = false;
-            _camera.enabled = false;
+            _camera.enabled = _isDefaultEntity;   
         }
 
         public virtual void OnActivated()
         {
             if (this.IsActive) { return; }
             this.IsActive = true;
-            _camera.enabled = true;
+            
+            if (!_isDefaultEntity) // default entity should always have its camera rendering
+            {
+                _camera.enabled = true;
+            }
         }
         
         public virtual void OnDeactivated()
         {
             if (!this.IsActive) { return; }
             this.IsActive = false;
-            _camera.enabled = false;
+
+            if (!_isDefaultEntity) // default entity should always have its camera rendering
+            {
+                _camera.enabled = false;
+            }
         }
         
     }

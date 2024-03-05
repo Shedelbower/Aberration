@@ -19,6 +19,7 @@ namespace Project
         
         public bool SpaceDown { get; private set; }
         public bool EDown { get; private set; }
+        public bool QDown { get; private set; }
         public bool LeftMouseDown { get; private set; }
         
         public bool SpaceDownPersist { get; set; }
@@ -55,6 +56,7 @@ namespace Project
 
             this.SpaceDown = Input.GetKeyDown(KeyCode.Space);
             this.EDown = Input.GetKeyDown(KeyCode.E);
+            this.QDown = Input.GetKeyDown(KeyCode.Q);
             this.LeftMouseDown = Input.GetMouseButtonDown(0);
 
             this.SpaceDownPersist |= this.SpaceDown;
