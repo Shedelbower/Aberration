@@ -33,11 +33,22 @@
 - Most of the day was probably a waist :(
 
 ### Day 5
-
+*build 0.05.0*
 - Reworked quadruped physics and movement to be more stable and fun, at the cost of being less physically accurate.
 - Improved procedural animations of quadruped to be more nuanced and realistic.
   - Still need to cleanup code before replacing original Rover classes.
 
+### Day 6
+*build 0.06.1*
+- More tweaks to quadruped movement and IK.
+- Added playable "human" character.
+  - Set as the default entity.
+  - Controls other entities via a tablet device.
+  - Supports walking, sprinting, jumping, gravity, and click-to-interact.
+  - Implemented basic camera smoothing, which is particularly useful on stairs.
+- Other entities now target the tablet render texture.
+  - Each entity can have a custom post-processing volume.
+- Overall a productive day :)
 
 ## TODO
 1. [ ] Swap entities using numbers 1-n
