@@ -27,8 +27,10 @@ namespace Project.Entities
             }
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
+            if (!this.IsActive) { return; }
+            
             _inputBuffer = new Vector2(
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")
@@ -37,8 +39,10 @@ namespace Project.Entities
             _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
         }
 
-        public override void OnFixedUpdate()
+        public void FixedUpdate()
         {
+            if (!this.IsActive) { return; }
+            
             ApplyMovementForce();
             ApplyMovementTorque();
             ApplyLegForces();

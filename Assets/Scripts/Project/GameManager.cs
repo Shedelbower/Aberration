@@ -8,49 +8,18 @@ namespace Project
     {
         [Header("Managers")]
         [SerializeField] private CameraManager _cameraManager;
+        [SerializeField] private InputManager _inputManager;
+        [SerializeField] private PlayerManager _playerManager;
         [SerializeField] private LevelManager _levelManager;
-        
-        [Header("References")]
-        [SerializeField] private PlayableEntity[] _playableEntities;
 
-        private int _activeEntityIndex = -1;
         
         private void Initialize()
         {
             _cameraManager.Initialize();
+            _inputManager.Initialize();
+            _playerManager.Initialize();
             _levelManager.Initialize();
-
-            for (int ei = 0; ei < _playableEntities.Length; ei++)
-            {
-                _playableEntities[ei].Initialize();
-            }
-
-            SetActiveEntity(0);
         }
-
-        private void SetActiveEntity(int activeIndex)
-        {
-            if (activeIndex == _activeEntityIndex)
-            {
-                return;
-            }
-
-            if (activeIndex > 0) // Handle start up case where activeIndex = -1
-            {
-                _playableEntities[_activeEntityIndex].OnPlayingEnd();
-            }
-            
-            _activeEntityIndex = activeIndex;
-            _playableEntities[_activeEntityIndex].OnPlayingStart();
-        }
-
-        private void SwapActiveEntity()
-        {
-            int newIndex = (_activeEntityIndex + 1) % _playableEntities.Length;
-            SetActiveEntity(newIndex);
-        }
-        
-
 
         ////////////////////////////////////////////////////////////////////////
         //                          Unity Game Loop                           //
@@ -62,20 +31,7 @@ namespace Project
             Initialize();
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                SwapActiveEntity();
-            }
-            
-            _playableEntities[_activeEntityIndex].OnUpdate();
-        }
 
-        private void FixedUpdate()
-        {
-            _playableEntities[_activeEntityIndex].OnFixedUpdate();
-        }
 
         private void OnGUI()
         {

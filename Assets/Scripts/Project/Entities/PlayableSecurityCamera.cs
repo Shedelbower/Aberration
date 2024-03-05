@@ -6,21 +6,18 @@ namespace Project.Entities
     {
         [SerializeField] private float _rotateSpeed = 10.0f;
         
-        private Vector2 _inputBuffer;
         
-        public override void OnUpdate()
-        {
-            _inputBuffer = new Vector2(
-                Input.GetAxisRaw("Horizontal"),
-                Input.GetAxisRaw("Vertical")
-            );
-        }
+        // private void Update()
+        // {
+        //     if (!this.IsActive) { return; }
+        // }
 
-        public override void OnFixedUpdate()
+        private void FixedUpdate()
         {
+            if (!this.IsActive) { return; }
+            
             // TODO: Have vertical axis control zoom (i.e. field of view).
-            ChangeRotation(_inputBuffer.x, _inputBuffer.y);
-            _inputBuffer = Vector2.zero;
+            ChangeRotation(InputManager.Instance.HorizontalAxis, InputManager.Instance.VerticalAxis);
         }
 
         private void ChangeRotation(float horizontal, float vertical)

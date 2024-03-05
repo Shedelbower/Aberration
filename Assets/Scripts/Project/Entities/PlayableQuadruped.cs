@@ -25,39 +25,21 @@ namespace Project.Entities
             _legOrchestrator.Initialize(_rb);
         }
 
-        private void ResetPose()
+        private void Update()
         {
-            // TODO
-        }
-        
-        public override void OnUpdate()
-        {
-            // _inputBufferMovement = new Vector2(
-            //     Input.GetAxisRaw("Horizontal"),
-            //     Input.GetAxisRaw("Vertical")
-            // );
-            //
-            // _inputBufferInteraction |= Input.GetKeyDown(KeyCode.E);
+            if (!this.IsActive) { return; }
             
             _legOrchestrator.OnUpdate();
 
-            _legOrchestrator.InputLinearMovement = Input.GetAxisRaw("Vertical");
-            _legOrchestrator.InputAngularMovement = Input.GetAxisRaw("Horizontal");
+            _legOrchestrator.InputLinearMovement = InputManager.Instance.VerticalAxis;
+            _legOrchestrator.InputAngularMovement = InputManager.Instance.HorizontalAxis;
         }
 
-        public override void OnFixedUpdate()
+        private void FixedUpdate()
         {
-            // var movementForce = this.transform.forward * _inputBufferMovement.y * _linearSpeed;
-            // var torque = this.transform.up * _inputBufferMovement.x * _angularSpeed;
-
+            if (!this.IsActive) { return; }
+            
             _legOrchestrator.OnFixedUpdate();
-            
-            // _legOrchestrator.ApplyForces(_rb, movementForce, torque, _legPowerScale);
-            
-            
-            // Reset input buffers now that they've been used to avoid double counting them.
-            // _inputBufferMovement = Vector2.zero;
-            // _inputBufferInteraction = false;
         }
         
         
