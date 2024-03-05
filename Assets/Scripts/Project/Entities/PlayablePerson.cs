@@ -1,8 +1,5 @@
 using Project.Interactables;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.TextCore.Text;
 
 namespace Project.Entities
 {
@@ -24,25 +21,45 @@ namespace Project.Entities
         [SerializeField] private float _maxVerticalAngleDegress = 70f;
         
         [SerializeField] private float _maxInteractionDistance = 2f;
+
+        [SerializeField] private AnimationCurve _tabletFocusAnimationCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        [SerializeField] private float _tabletFocusAnimationDuration = 1.0f;
         
         [Header("Component References")]
         [SerializeField] private Rigidbody _rb;
-        
+
+        [SerializeField] private Transform _smoothBase;
         [SerializeField] private Transform _yawBase;
         [SerializeField] private Transform _pitchBase;
         [SerializeField] private Transform _tablet;
+        
+        [SerializeField] private Transform _tabletFocusedTarget;
+        [SerializeField] private Transform _tabletUnFocusedTarget;
         
         [Header("Debug")]
         [SerializeField] private bool _isGrounded;
         
         private float _desiredHeadHeight = 1.75f;
 
+        private enum TabletFocusState
+        {
+            Focused,
+            Unfocused,
+            Focusing,
+            Unfocusing
+        }
+
+        private TabletFocusState _tabletFocusState;
+        private float _tabletFocusTimer = 0.0f;
+        
+
         public override void OnActivated()
         {
             base.OnActivated();
             InputManager.Instance.LockMouse();
 
-            _camera.transform.parent = null;
+            _smoothBase.parent = null;
+            _tabletFocusState = TabletFocusState.Unfocusing;
         }
         
         public override void OnDeactivated()
@@ -50,7 +67,8 @@ namespace Project.Entities
             base.OnDeactivated();
             InputManager.Instance.UnlockMouse();
             
-            _camera.transform.parent = _pitchBase;
+            _smoothBase.parent = this.transform;
+            _tabletFocusState = TabletFocusState.Focusing;
         }
 
         private void Update()
@@ -79,7 +97,7 @@ namespace Project.Entities
             _pitchBase.localRotation = Quaternion.Euler(verticalAngle, 0, 0);
             
             // Update Camera
-            UpdateCamera();
+            UpdateSmoothBase();
             
             // Try interaction
             if (InputManager.Instance.LeftMouseDown)
@@ -93,7 +111,7 @@ namespace Project.Entities
         {
             if (!this.IsActive)
             {
-                UpdateCamera(); // TODO: Remove
+                UpdateSmoothBase(); // TODO: Remove
                 return;
             }
 
@@ -167,19 +185,46 @@ namespace Project.Entities
             
         }
 
-        private void UpdateCamera()
+        private void UpdateSmoothBase()
         {
-            var tr = _camera.transform;
+            var targetVec = this.transform.position - _smoothBase.position;
+            _smoothBase.position += targetVec * 0.1f;
 
-            tr.rotation = _pitchBase.rotation;
-            var targetVec = _pitchBase.position - tr.position;
-            tr.position += targetVec * 0.1f;
-            
-            // Update tablet position
-            Vector3 offset = PlayerManager.Instance.TabletIsShown ? Vector3.zero : Vector3.down;
-            _tablet.position = tr.position + tr.forward * 0.2f + offset;
-            _tablet.LookAt(tr.position);
-            
+            UpdateTablet();
+        }
+
+        private void UpdateTablet()
+        {
+            if (_tabletFocusState == TabletFocusState.Focusing || _tabletFocusState == TabletFocusState.Unfocusing)
+            {
+                _tabletFocusTimer += Time.deltaTime;
+                var start = _tabletFocusState == TabletFocusState.Focusing
+                    ? _tabletUnFocusedTarget
+                    : _tabletFocusedTarget;
+                var end = _tabletFocusState == TabletFocusState.Focusing
+                    ? _tabletFocusedTarget
+                    : _tabletUnFocusedTarget;
+                float s = Mathf.Clamp01(_tabletFocusTimer / _tabletFocusAnimationDuration);
+                var t = _tabletFocusAnimationCurve.Evaluate(s);
+
+                _tablet.position = Vector3.LerpUnclamped(start.position, end.position, t);
+                _tablet.rotation = Quaternion.LerpUnclamped(start.rotation, end.rotation, t);
+                if (s >= 1f)
+                {
+                    if (_tabletFocusState == TabletFocusState.Unfocusing)
+                    {
+                        _tabletFocusState = TabletFocusState.Unfocused;
+                        _tablet.parent = _tabletUnFocusedTarget;
+                        _tabletFocusTimer = 0.0f;
+                    }
+                    else
+                    {
+                        _tabletFocusState = TabletFocusState.Focused;
+                        _tablet.parent = _tabletFocusedTarget;
+                        _tabletFocusTimer = 0.0f;
+                    }
+                }
+            }
         }
 
         private void TryInteract()
