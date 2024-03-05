@@ -6804,6 +6804,7 @@ MonoBehaviour:
   _camera: {fileID: 1535376657}
   _walkSpeed: 3
   _sprintSpeed: 8
+  _jumpPower: 3
   _mouseSensitivityHorizontal: 600
   _mouseSensitivityVertical: 500
   _minVerticalAngleDegrees: 70
@@ -17726,7 +17727,7 @@ GameObject:
   - component: {fileID: 1535376656}
   - component: {fileID: 1535376655}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: Camera (Human Player)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

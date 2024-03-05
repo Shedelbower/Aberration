@@ -59,10 +59,21 @@ namespace Project
         
         private void Update()
         {
-            // TODO: Temporary, use InputManager
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (InputManager.Instance.Alpha1Down && _playableEntities.Length > 0)
             {
-                SwapActiveEntity();
+                SetActiveEntity(0);
+            }
+            else if (InputManager.Instance.Alpha2Down && _playableEntities.Length > 1)
+            {
+                SetActiveEntity(1);
+            }
+            else if (InputManager.Instance.Alpha3Down && _playableEntities.Length > 2)
+            {
+                SetActiveEntity(2);
+            }
+            else if (InputManager.Instance.Alpha4Down && _playableEntities.Length > 3)
+            {
+                SetActiveEntity(3);
             }
         }
         

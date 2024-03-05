@@ -13,10 +13,11 @@ namespace Project.Entities
 
 
         [Header("Settings")]
-        [SerializeField] private float _walkSpeed = 600f;
-        [SerializeField] private float _sprintSpeed = 1200f;
-        [SerializeField] private float _mouseSensitivityHorizontal = 800f;
-        [SerializeField] private float _mouseSensitivityVertical = 800f;
+        [SerializeField] private float _walkSpeed = 3f;
+        [SerializeField] private float _sprintSpeed = 8f;
+        [SerializeField] private float _jumpPower = 3f;
+        [SerializeField] private float _mouseSensitivityHorizontal = 600f;
+        [SerializeField] private float _mouseSensitivityVertical = 500f;
         
         [SerializeField] private float _minVerticalAngleDegrees = 70f;
         [SerializeField] private float _maxVerticalAngleDegress = 70f;
@@ -36,16 +37,22 @@ namespace Project.Entities
         {
             base.OnActivated();
             InputManager.Instance.LockMouse();
+
+            _camera.transform.parent = null;
         }
         
         public override void OnDeactivated()
         {
             base.OnDeactivated();
             InputManager.Instance.UnlockMouse();
+            
+            _camera.transform.parent = _pitchBase;
         }
 
         private void Update()
         {
+            if (!this.IsActive) { return; }
+            
             // Rotation (Yaw)
             float mouseX = InputManager.Instance.MouseX;
             float angleX = mouseX * Time.deltaTime * _mouseSensitivityHorizontal;
@@ -66,6 +73,9 @@ namespace Project.Entities
             
             verticalAngle = Mathf.Clamp(verticalAngle + verticalDelta, -_minVerticalAngleDegrees, _maxVerticalAngleDegress);
             _pitchBase.localRotation = Quaternion.Euler(verticalAngle, 0, 0);
+            
+            // Update Camera
+            UpdateCamera();
         }
 
 
@@ -113,6 +123,14 @@ namespace Project.Entities
                 // Gravity
                 _rb.AddForce(Vector3.up * -9.8f * gravityScale, ForceMode.Acceleration); 
             }
+            else
+            {
+                if (InputManager.Instance.SpaceDownPersist || InputManager.Instance.Space) // Jump
+                {
+                    InputManager.Instance.SpaceDownPersist = false; // Manually flip it to false
+                    _rb.AddForce(Vector3.up * _jumpPower, ForceMode.VelocityChange); 
+                }
+            }
         }
 
         private void HandleMovement()
@@ -133,6 +151,15 @@ namespace Project.Entities
                 _rb.velocity = newHorizontalVelocity;
             }
             
+        }
+
+        private void UpdateCamera()
+        {
+            var tr = _camera.transform;
+
+            tr.rotation = _pitchBase.rotation;
+            var targetVec = _pitchBase.position - tr.position;
+            tr.position += targetVec * 0.1f;
         }
 
     }
