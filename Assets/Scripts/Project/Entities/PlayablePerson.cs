@@ -1,3 +1,4 @@
+using Project.Interactables;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -21,6 +22,8 @@ namespace Project.Entities
         
         [SerializeField] private float _minVerticalAngleDegrees = 70f;
         [SerializeField] private float _maxVerticalAngleDegress = 70f;
+        
+        [SerializeField] private float _maxInteractionDistance = 2f;
         
         [Header("Component References")]
         [SerializeField] private Rigidbody _rb;
@@ -76,6 +79,12 @@ namespace Project.Entities
             
             // Update Camera
             UpdateCamera();
+            
+            // Try interaction
+            if (InputManager.Instance.LeftMouseDown)
+            {
+                TryInteract();
+            }
         }
 
 
@@ -160,6 +169,26 @@ namespace Project.Entities
             tr.rotation = _pitchBase.rotation;
             var targetVec = _pitchBase.position - tr.position;
             tr.position += targetVec * 0.1f;
+        }
+
+        private void TryInteract()
+        {
+            var origin = _camera.transform.position;
+            var dir = _camera.transform.forward;
+            var mask = LayerMask.GetMask("Interactable");
+            if (Physics.Raycast(origin, dir, out RaycastHit hit, _maxInteractionDistance, mask))
+            {
+                var interactable = hit.collider.gameObject.GetComponentInParent<Interactable>();
+                if (interactable == null)
+                {
+                    Debug.LogWarning("Hit a collider marked \"Interactable\" with no Interactable component");
+                }
+                else
+                {
+                    interactable.TryBeginInteraction();
+                }
+            }
+            
         }
 
     }
