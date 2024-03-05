@@ -5,9 +5,6 @@ namespace Project.Entities
     public class PlayableQuadruped : PlayableEntity
     {
         [Header("Settings")]
-        [SerializeField] private float _linearSpeed = 20.0f;
-        [SerializeField] private float _angularSpeed = 10.0f;
-        [SerializeField] private float _legPowerScale = 20.0f;
         
         [Header("Component References")]
         [SerializeField] private Rigidbody _rb;
