@@ -7006,8 +7006,8 @@ MonoBehaviour:
   _walkSpeed: 3
   _sprintSpeed: 8
   _jumpPower: 3
-  _mouseSensitivityHorizontal: 600
-  _mouseSensitivityVertical: 500
+  _mouseSensitivityHorizontal: 2
+  _mouseSensitivityVertical: 2
   _minVerticalAngleDegrees: 70
   _maxVerticalAngleDegress: 70
   _maxInteractionDistance: 2

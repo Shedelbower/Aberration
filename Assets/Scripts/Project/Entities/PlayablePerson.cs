@@ -14,8 +14,8 @@ namespace Project.Entities
         [SerializeField] private float _walkSpeed = 3f;
         [SerializeField] private float _sprintSpeed = 8f;
         [SerializeField] private float _jumpPower = 3f;
-        [SerializeField] private float _mouseSensitivityHorizontal = 600f;
-        [SerializeField] private float _mouseSensitivityVertical = 500f;
+        [SerializeField] private float _mouseSensitivityHorizontal = 2f;
+        [SerializeField] private float _mouseSensitivityVertical = 2f;
         
         [SerializeField] private float _minVerticalAngleDegrees = 70f;
         [SerializeField] private float _maxVerticalAngleDegress = 70f;
@@ -77,7 +77,7 @@ namespace Project.Entities
             
             // Rotation (Yaw)
             float mouseX = InputManager.Instance.MouseX;
-            float angleX = mouseX * Time.deltaTime * _mouseSensitivityHorizontal;
+            float angleX = mouseX * _mouseSensitivityHorizontal;
             var rotX = Quaternion.AngleAxis(angleX, this.RotationAxis);
 
             _yawBase.rotation = rotX * _yawBase.rotation;
@@ -85,7 +85,7 @@ namespace Project.Entities
             // Rotation (Pitch)
             
             float mouseY = InputManager.Instance.MouseY;
-            float verticalDelta = -mouseY * _mouseSensitivityVertical * Time.deltaTime;
+            float verticalDelta = -mouseY * _mouseSensitivityVertical;
             float verticalAngle = _pitchBase.localEulerAngles.x;
 
             while (verticalAngle > 90f)
