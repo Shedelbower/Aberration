@@ -7426,8 +7426,8 @@ MonoBehaviour:
   _isDefaultEntity: 1
   _camera: {fileID: 1535376657}
   _walkSpeed: 3
-  _sprintSpeed: 8
-  _jumpPower: 3
+  _sprintSpeed: 7
+  _jumpPower: 4
   _mouseSensitivityHorizontal: 2
   _mouseSensitivityVertical: 2
   _minVerticalAngleDegrees: 70
@@ -7516,7 +7516,7 @@ Rigidbody:
   m_GameObject: {fileID: 570036572}
   serializedVersion: 4
   m_Mass: 70
-  m_Drag: 0.05
+  m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}

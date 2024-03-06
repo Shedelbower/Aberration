@@ -51,7 +51,12 @@ namespace Project.Entities
 
         private TabletFocusState _tabletFocusState;
         private float _tabletFocusTimer = 0.0f;
-        
+
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
+
 
         public override void OnActivated()
         {
@@ -69,12 +74,38 @@ namespace Project.Entities
             
             _smoothBase.parent = this.transform;
             _tabletFocusState = TabletFocusState.Focusing;
+
         }
 
         private void Update()
         {
-            if (!this.IsActive) { return; }
+            if (this.IsActive)
+            {
+                HandleMouseRotation();
+                UpdateTablet();
+                HandleInteraction();
+            }
             
+            UpdateSmoothBase();
+        }
+
+
+        private void FixedUpdate()
+        {
+            GroundCheckAndGravity();
+            
+            if (this.IsActive)
+            {
+                HandleMovement();
+            }
+            else
+            {
+                SetHorizontalVelocity(Vector3.zero);
+            }
+        }
+
+        private void HandleMouseRotation()
+        {
             // Rotation (Yaw)
             float mouseX = InputManager.Instance.MouseX;
             float angleX = mouseX * _mouseSensitivityHorizontal;
@@ -95,28 +126,15 @@ namespace Project.Entities
             
             verticalAngle = Mathf.Clamp(verticalAngle + verticalDelta, -_minVerticalAngleDegrees, _maxVerticalAngleDegress);
             _pitchBase.localRotation = Quaternion.Euler(verticalAngle, 0, 0);
-            
-            // Update Camera
-            UpdateSmoothBase();
-            
+        }
+
+        private void HandleInteraction()
+        {
             // Try interaction
             if (InputManager.Instance.LeftMouseDown)
             {
                 TryInteract();
             }
-        }
-
-
-        private void FixedUpdate()
-        {
-            if (!this.IsActive)
-            {
-                UpdateSmoothBase(); // TODO: Remove
-                return;
-            }
-
-            GroundCheckAndGravity();
-            HandleMovement();
         }
 
         private void GroundCheckAndGravity()
@@ -133,21 +151,32 @@ namespace Project.Entities
                 currHeight = hit.distance;
             }
             
-            if (currHeight > _desiredHeadHeight)
+            var wasGrounded = _isGrounded;
+
+            if (currHeight > _desiredHeadHeight + bufferLength)
             {
                 _isGrounded = false;
-                float falloff = (currHeight - _desiredHeadHeight) / bufferLength;
-                falloff = Mathf.Clamp01(falloff);
-                gravityScale = falloff;
             }
             else
             {
                 _isGrounded = true;
+            }
+            
+            if (currHeight > _desiredHeadHeight)
+            {
+                float falloff = (currHeight - _desiredHeadHeight) / bufferLength;
+                gravityScale = Mathf.Clamp01(falloff);
+            }
+            else
+            {
+                // _isGrounded = true;
                 var verticalDelta = _desiredHeadHeight - currHeight;
                 _rb.MovePosition(_rb.position + Vector3.up * verticalDelta);
-                var vel = _rb.velocity;
-                vel.y = 0.0f;
-                _rb.velocity = vel;
+            }
+            
+            if (wasGrounded != _isGrounded)
+            {
+                OnGroundedChanged(_isGrounded);
             }
 
             if (!_isGrounded)
@@ -157,11 +186,21 @@ namespace Project.Entities
             }
             else
             {
-                if (InputManager.Instance.SpaceDownPersist || InputManager.Instance.Space) // Jump
+                if (InputManager.Instance.Space) // Jump
                 {
-                    InputManager.Instance.SpaceDownPersist = false; // Manually flip it to false
-                    _rb.AddForce(Vector3.up * _jumpPower, ForceMode.VelocityChange); 
+                    SetVerticalVelocity(_jumpPower);
                 }
+            }
+        }
+
+        private void OnGroundedChanged(bool isGrounded)
+        {
+            if (isGrounded)
+            {
+                // Set vertical velocity to 0 when hitting the ground.
+                var vel = _rb.velocity;
+                vel.y = 0.0f;
+                _rb.velocity = vel;   
             }
         }
 
@@ -178,11 +217,21 @@ namespace Project.Entities
                 var speed = InputManager.Instance.ShiftKey ? _sprintSpeed : _walkSpeed;
 
                 var newHorizontalVelocity = moveDir * speed;
-                newHorizontalVelocity.y = _rb.velocity.y; // Preserve vertical velocity
-
-                _rb.velocity = newHorizontalVelocity;
+                SetHorizontalVelocity(newHorizontalVelocity);
             }
-            
+        }
+
+        private void SetHorizontalVelocity(Vector3 velocity)
+        {
+            velocity.y = _rb.velocity.y; // Preserve vertical velocity
+            _rb.velocity = velocity;
+        }
+        
+        private void SetVerticalVelocity(float upwardVelocity)
+        {
+            var velocity = _rb.velocity;
+            velocity.y = upwardVelocity;
+            _rb.velocity = velocity;
         }
 
         private void UpdateSmoothBase()
