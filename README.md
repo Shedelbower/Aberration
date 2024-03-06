@@ -50,11 +50,19 @@
   - Each entity can have a custom post-processing volume.
 - Overall a productive day :)
 
+### Day 7
+*build 0.07.1*
+- Tweaks to player and quadruped movement.
+- Tablet lift/lower animation.
+- Initial UI setup.
+- Didn't have much time this evening, so didn't make much progress.
+
+
+
 ## TODO
-1. [ ] Swap entities using numbers 1-n
+1. [x] Swap entities using numbers 1-n
 2. [x] Custom rover physics for traveling on ground and up ramps
 3. [ ] Security camera zoom in/out
-4. [ ] Show two screens at a time and hot-swap them? At least when not in human mode?
 
 ### Rover
 1. [ ] Bonk into wall/player (add rotational impulse and/or bounce)
