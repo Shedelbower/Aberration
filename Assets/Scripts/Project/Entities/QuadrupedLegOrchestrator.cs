@@ -181,6 +181,11 @@ namespace Project.Entities
                 }
             }
 
+            if (_groundedLegCount > 0)
+            {
+                _ragdollTimer = 0.0f; // Reset ragdoll timer
+            }
+
             if (_isRagdoll && _groundedLegCount >= 2)
             {
                 SetRagdoll(false);
@@ -240,8 +245,8 @@ namespace Project.Entities
             bool canMoveBackward = BL || BR;
 
             float forwardInput = this.InputLinearMovement;
-            if (!canMoveForward) { forwardInput = Mathf.Min(forwardInput, 0.0f); }
-            if (!canMoveBackward) { forwardInput = Mathf.Max(forwardInput, 0.0f); }
+            // if (!canMoveForward) { forwardInput = Mathf.Min(forwardInput, 0.0f); }
+            // if (!canMoveBackward) { forwardInput = Mathf.Max(forwardInput, 0.0f); }
             
             // Forces from player input
             Vector3 movementForce = forwardInput * _linearSpeed * this.transform.forward;
