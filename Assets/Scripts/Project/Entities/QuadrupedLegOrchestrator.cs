@@ -44,6 +44,7 @@ namespace Project.Entities
         private float _ragdollTimer;
         private QuadrupedLeg[] _legs;
         private Rigidbody _rb;
+        private PlayableEntity _entity;
 
 
         private float _legSpacing;
@@ -51,8 +52,9 @@ namespace Project.Entities
         
         private Dictionary<QuadrupedLeg, QuadrupedLeg[]> _dependencies;
         
-        public void Initialize(Rigidbody rb)
+        public void Initialize(PlayableEntity entity, Rigidbody rb)
         {
+            _entity = entity;
             _rb = rb;
             
             _legs = new QuadrupedLeg[]
@@ -82,11 +84,6 @@ namespace Project.Entities
 
         public void OnUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                SetRagdoll(!_isRagdoll);
-            }
-            
             if (Input.GetKeyDown(KeyCode.C))
             {
                 SetCrawling(!_isCrawling);
@@ -251,12 +248,15 @@ namespace Project.Entities
             // Forces from player input
             Vector3 movementForce = forwardInput * _linearSpeed * this.transform.forward;
             Vector3 angularTorque = this.InputAngularMovement * _angularSpeed * this.transform.up;
+
+            if (_entity.IsActive)
+            {
+                // Apply movement force
+                _rb.AddForce(movementForce, ForceMode.Force);
             
-            // Apply movement force
-            _rb.AddForce(movementForce, ForceMode.Force);
-            
-            // Apply torque
-            _rb.AddTorque(angularTorque, ForceMode.Force);
+                // Apply torque
+                _rb.AddTorque(angularTorque, ForceMode.Force);   
+            }
 
             
             // Height Correction

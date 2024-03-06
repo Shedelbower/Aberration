@@ -19,13 +19,11 @@ namespace Project.Entities
         public override void Initialize()
         {
             base.Initialize();
-            _legOrchestrator.Initialize(_rb);
+            _legOrchestrator.Initialize(this, _rb);
         }
 
         private void Update()
         {
-            if (!this.IsActive) { return; }
-            
             _legOrchestrator.OnUpdate();
 
             _legOrchestrator.InputLinearMovement = InputManager.Instance.VerticalAxis;
@@ -34,8 +32,6 @@ namespace Project.Entities
 
         private void FixedUpdate()
         {
-            if (!this.IsActive) { return; }
-            
             _legOrchestrator.OnFixedUpdate();
         }
         
