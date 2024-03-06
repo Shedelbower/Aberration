@@ -64,6 +64,12 @@
 5. [ ] Align lower and upper leg segments so they don't clip.
 6. [ ] Press, hold, and release space to wind up a jump?
 
+## Assets
+
+### Fonts
+- Google Fonts
+  - [Kode Mono](https://fonts.google.com/specimen/Kode+Mono)
+
 ## Ideas
 
 ### Setup
