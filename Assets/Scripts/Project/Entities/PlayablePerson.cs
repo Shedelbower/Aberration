@@ -9,7 +9,6 @@ namespace Project.Entities
         public Vector3 MovementRight => _yawBase.right;
         public Vector3 RotationAxis => this.transform.up;
 
-
         [Header("Settings")]
         [SerializeField] private float _walkSpeed = 3f;
         [SerializeField] private float _sprintSpeed = 8f;
@@ -21,9 +20,6 @@ namespace Project.Entities
         [SerializeField] private float _maxVerticalAngleDegress = 70f;
         
         [SerializeField] private float _maxInteractionDistance = 2f;
-
-        [SerializeField] private AnimationCurve _tabletFocusAnimationCurve = AnimationCurve.Linear(0, 0, 1, 1);
-        [SerializeField] private float _tabletFocusAnimationDuration = 1.0f;
         
         [Header("Component References")]
         [SerializeField] private Rigidbody _rb;
@@ -31,32 +27,36 @@ namespace Project.Entities
         [SerializeField] private Transform _smoothBase;
         [SerializeField] private Transform _yawBase;
         [SerializeField] private Transform _pitchBase;
-        [SerializeField] private Transform _tablet;
         
-        [SerializeField] private Transform _tabletFocusedTarget;
-        [SerializeField] private Transform _tabletUnFocusedTarget;
+        [SerializeField] private Transform _tabletRaisedTarget;
+        [SerializeField] private Transform _tabletLoweredTarget;
+        [SerializeField] private Tablet _tablet;
         
         [Header("Debug")]
         [SerializeField] private bool _isGrounded;
         
         private float _desiredHeadHeight = 1.75f;
 
-        private enum TabletFocusState
-        {
-            Focused,
-            Unfocused,
-            Focusing,
-            Unfocusing
-        }
-
-        private TabletFocusState _tabletFocusState;
-        private float _tabletFocusTimer = 0.0f;
-
         public override void Initialize()
         {
             base.Initialize();
+            if (_tablet != null)
+            {
+                SetTablet(_tablet);
+            }
         }
 
+        public void OnPickupTablet(Tablet tablet)
+        {
+            SetTablet(tablet);
+            _tablet.BeginRaiseAnimation();
+        }
+
+        private void SetTablet(Tablet tablet)
+        {
+            _tablet = tablet;
+            _tablet.AssignTransforms(_tabletLoweredTarget, _tabletRaisedTarget);
+        }
 
         public override void OnActivated()
         {
@@ -64,7 +64,10 @@ namespace Project.Entities
             InputManager.Instance.LockMouse();
 
             _smoothBase.parent = null;
-            _tabletFocusState = TabletFocusState.Unfocusing;
+            if (_tablet != null)
+            {
+                _tablet.BeginLowerAnimation();
+            }
         }
         
         public override void OnDeactivated()
@@ -73,7 +76,10 @@ namespace Project.Entities
             InputManager.Instance.UnlockMouse();
             
             _smoothBase.parent = this.transform;
-            _tabletFocusState = TabletFocusState.Focusing;
+            if (_tablet != null)
+            {
+                _tablet.BeginRaiseAnimation();   
+            }
 
         }
 
@@ -82,7 +88,6 @@ namespace Project.Entities
             if (this.IsActive)
             {
                 HandleMouseRotation();
-                UpdateTablet();
                 HandleInteraction();
             }
             
@@ -97,6 +102,7 @@ namespace Project.Entities
             if (this.IsActive)
             {
                 HandleMovement();
+                HandleJump();
             }
             else
             {
@@ -184,12 +190,13 @@ namespace Project.Entities
                 // Gravity
                 _rb.AddForce(Vector3.up * -9.8f * gravityScale, ForceMode.Acceleration); 
             }
-            else
+        }
+
+        private void HandleJump()
+        {
+            if (_isGrounded && InputManager.Instance.Space) // Jump
             {
-                if (InputManager.Instance.Space) // Jump
-                {
-                    SetVerticalVelocity(_jumpPower);
-                }
+                SetVerticalVelocity(_jumpPower);
             }
         }
 
@@ -206,19 +213,19 @@ namespace Project.Entities
 
         private void HandleMovement()
         {
-            if (_isGrounded)
-            {
-                // Movement
-                var forwardInput = InputManager.Instance.VerticalAxis;
-                var rightInput = InputManager.Instance.HorizontalAxis;
+            // TODO: Add to velocity instead of setting it
+            float groundedScale = _isGrounded ? 1.0f : 0.2f;
+            
+            // Movement
+            var forwardInput = InputManager.Instance.VerticalAxis;
+            var rightInput = InputManager.Instance.HorizontalAxis;
 
-                var moveDir = forwardInput * this.MovementForward + rightInput * this.MovementRight;
-                moveDir = moveDir.normalized;
-                var speed = InputManager.Instance.ShiftKey ? _sprintSpeed : _walkSpeed;
+            var moveDir = forwardInput * this.MovementForward + rightInput * this.MovementRight;
+            moveDir = moveDir.normalized;
+            var speed = InputManager.Instance.ShiftKey ? _sprintSpeed : _walkSpeed;
 
-                var newHorizontalVelocity = moveDir * speed;
-                SetHorizontalVelocity(newHorizontalVelocity);
-            }
+            var newHorizontalVelocity = moveDir * speed * groundedScale;
+            SetHorizontalVelocity(newHorizontalVelocity);
         }
 
         private void SetHorizontalVelocity(Vector3 velocity)
@@ -239,42 +246,42 @@ namespace Project.Entities
             var targetVec = this.transform.position - _smoothBase.position;
             _smoothBase.position += targetVec * 0.1f;
 
-            UpdateTablet();
+            // UpdateTablet();
         }
 
-        private void UpdateTablet()
-        {
-            if (_tabletFocusState == TabletFocusState.Focusing || _tabletFocusState == TabletFocusState.Unfocusing)
-            {
-                _tabletFocusTimer += Time.deltaTime;
-                var start = _tabletFocusState == TabletFocusState.Focusing
-                    ? _tabletUnFocusedTarget
-                    : _tabletFocusedTarget;
-                var end = _tabletFocusState == TabletFocusState.Focusing
-                    ? _tabletFocusedTarget
-                    : _tabletUnFocusedTarget;
-                float s = Mathf.Clamp01(_tabletFocusTimer / _tabletFocusAnimationDuration);
-                var t = _tabletFocusAnimationCurve.Evaluate(s);
-
-                _tablet.position = Vector3.LerpUnclamped(start.position, end.position, t);
-                _tablet.rotation = Quaternion.LerpUnclamped(start.rotation, end.rotation, t);
-                if (s >= 1f)
-                {
-                    if (_tabletFocusState == TabletFocusState.Unfocusing)
-                    {
-                        _tabletFocusState = TabletFocusState.Unfocused;
-                        _tablet.parent = _tabletUnFocusedTarget;
-                        _tabletFocusTimer = 0.0f;
-                    }
-                    else
-                    {
-                        _tabletFocusState = TabletFocusState.Focused;
-                        _tablet.parent = _tabletFocusedTarget;
-                        _tabletFocusTimer = 0.0f;
-                    }
-                }
-            }
-        }
+        // private void UpdateTablet()
+        // {
+        //     if (_tabletFocusState == TabletFocusState.Focusing || _tabletFocusState == TabletFocusState.Unfocusing)
+        //     {
+        //         _tabletFocusTimer += Time.deltaTime;
+        //         var start = _tabletFocusState == TabletFocusState.Focusing
+        //             ? _tabletUnFocusedTarget
+        //             : _tabletFocusedTarget;
+        //         var end = _tabletFocusState == TabletFocusState.Focusing
+        //             ? _tabletFocusedTarget
+        //             : _tabletUnFocusedTarget;
+        //         float s = Mathf.Clamp01(_tabletFocusTimer / _tabletFocusAnimationDuration);
+        //         var t = _tabletFocusAnimationCurve.Evaluate(s);
+        //
+        //         _tablet.position = Vector3.LerpUnclamped(start.position, end.position, t);
+        //         _tablet.rotation = Quaternion.LerpUnclamped(start.rotation, end.rotation, t);
+        //         if (s >= 1f)
+        //         {
+        //             if (_tabletFocusState == TabletFocusState.Unfocusing)
+        //             {
+        //                 _tabletFocusState = TabletFocusState.Unfocused;
+        //                 _tablet.parent = _tabletUnFocusedTarget;
+        //                 _tabletFocusTimer = 0.0f;
+        //             }
+        //             else
+        //             {
+        //                 _tabletFocusState = TabletFocusState.Focused;
+        //                 _tablet.parent = _tabletFocusedTarget;
+        //                 _tabletFocusTimer = 0.0f;
+        //             }
+        //         }
+        //     }
+        // }
 
         private void TryInteract()
         {

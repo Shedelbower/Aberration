@@ -1,7 +1,7 @@
 using System.Linq;
 using Project.Entities;
+using Project.Interactables;
 using UnityEngine;
-using UnityEngine.ProBuilder.MeshOperations;
 
 namespace Project
 {
@@ -9,86 +9,104 @@ namespace Project
     {
         [Header("References")]
         [SerializeField] private PlayableEntity _defaultEntity;
-        [SerializeField] private PlayableEntity[] _optionalEntities;
+        [SerializeField] private PlayableEntity[] _remoteEntities;
+        [SerializeField] private Tablet _tablet;
         
-        private PlayableEntity[] _playableEntities;
-
-        public bool TabletIsShown => _tabletShown;
-        
-        private int _defaultEntityIndex = 0;
-        private int _prevOptionalEntityIndex = 1;
-        private int _activeEntityIndex = -1;
-
-        private bool _tabletShown;
+        private int _prevRemoteEntityIndex = -1;
+        private int _activeRemoteEntityIndex = -1;
         
         public void Initialize()
         {
-            _playableEntities = _optionalEntities.Prepend(_defaultEntity).ToArray();
+            _defaultEntity.Initialize();
             
-            for (int ei = 0; ei < _playableEntities.Length; ei++)
+            for (int ei = 0; ei < _remoteEntities.Length; ei++)
             {
-                _playableEntities[ei].Initialize();
+                _remoteEntities[ei].Initialize();
             }
 
-            SetActiveEntity(_defaultEntityIndex);
+            SetDefaultEntityActive();
         }
 
-        private void SetActiveEntity(int activeIndex)
+        public void SyncNewEntity(PlayableEntity entity)
         {
-            if (_playableEntities.Length == 0)
-            {
-                Debug.LogWarning("No playable entities registered");
-                return;
-            }
-            
-            if (activeIndex == _activeEntityIndex)
-            {
-                Debug.LogWarning("Setting active playable entity to current entity");
-                return;
-            }
-
-            if (_activeEntityIndex >= 0) // Handle start up case where activeIndex = -1
-            {
-                _playableEntities[_activeEntityIndex].OnDeactivated();
-                _playableEntities[_activeEntityIndex].IsActive = false;
-            }
-            
-            _activeEntityIndex = activeIndex;
-            _playableEntities[_activeEntityIndex].OnActivated();
-            _playableEntities[_activeEntityIndex].IsActive = true;
+            _remoteEntities = _remoteEntities.Append(entity).ToArray();
         }
 
-        private void SwapActiveEntity()
+        private void SetDefaultEntityActive()
         {
-            int newIndex = (_activeEntityIndex + 1) % _playableEntities.Length;
-            SetActiveEntity(newIndex);
+            if (_defaultEntity.IsActive) { return; }
+
+            if (_activeRemoteEntityIndex >= 0)
+            {
+                _prevRemoteEntityIndex = _activeRemoteEntityIndex;
+                _remoteEntities[_activeRemoteEntityIndex].OnDeactivated();
+                _remoteEntities[_activeRemoteEntityIndex].IsActive = false;
+                _activeRemoteEntityIndex = -1;
+            }
+            
+            _defaultEntity.OnActivated();
+            _defaultEntity.IsActive = true;
+        }
+        
+        private void SetRemoteEntityActive(int index)
+        {
+            if (_activeRemoteEntityIndex == index) { return; }
+            
+            if (_defaultEntity.IsActive)
+            {
+                _defaultEntity.OnDeactivated();
+                _defaultEntity.IsActive = false;
+            }
+            
+            if (!_tablet.TabletIsRaised)
+            {
+                RaiseTablet();
+            }
+
+            if (_activeRemoteEntityIndex >= 0)
+            {   
+                // Deactivate old remote entity
+                _prevRemoteEntityIndex = _activeRemoteEntityIndex;
+                _remoteEntities[_activeRemoteEntityIndex].OnDeactivated();
+                _remoteEntities[_activeRemoteEntityIndex].IsActive = false;
+                _activeRemoteEntityIndex = -1;
+            }
+            
+            // Activate new entity
+            _activeRemoteEntityIndex = index;
+            _remoteEntities[_activeRemoteEntityIndex].OnActivated();
+            _remoteEntities[_activeRemoteEntityIndex].IsActive = true;
+        }
+
+        private void RestorePreviousRemoteEntity()
+        {
+            SetRemoteEntityActive(_prevRemoteEntityIndex);
         }
         
         private void ToggleTabletVisibility()
         {
-            if (_tabletShown)
+            if (_tablet.TabletIsRaised)
             {
-                HideTablet();
+                LowerTablet();
             }
             else
             {
-                ShowTablet();
+                RaiseTablet();
             }
         }
 
-        private void ShowTablet()
+        private void RaiseTablet()
         {
-            var nextIndex = _prevOptionalEntityIndex;
-            SetActiveEntity(nextIndex);
-            _tabletShown = true;
+            _tablet.BeginRaiseAnimation();
+            RestorePreviousRemoteEntity();
         }
         
-        private void HideTablet()
+        private void LowerTablet()
         {
-            _prevOptionalEntityIndex = _activeEntityIndex;
-            SetActiveEntity(_defaultEntityIndex);
-            _tabletShown = false;
+            _tablet.BeginLowerAnimation();
+            SetDefaultEntityActive();
         }
+        
 
         ////////////////////////////////////////////////////////////////////////
         //                          Unity Game Loop                           //
@@ -96,27 +114,32 @@ namespace Project
         
         private void Update()
         {
-            if (InputManager.Instance.QDown)
+
+            if (_tablet.TabletIsHeld)
             {
-                ToggleTabletVisibility();
+                if (InputManager.Instance.QDown)
+                {
+                    ToggleTabletVisibility();
+                }
+            
+                if (InputManager.Instance.Alpha1Down && _remoteEntities.Length > 0)
+                {
+                    SetRemoteEntityActive(0);
+                }
+                else if (InputManager.Instance.Alpha2Down && _remoteEntities.Length > 1)
+                {
+                    SetRemoteEntityActive(1);
+                }
+                else if (InputManager.Instance.Alpha3Down && _remoteEntities.Length > 2)
+                {
+                    SetRemoteEntityActive(2);
+                }
+                else if (InputManager.Instance.Alpha4Down && _remoteEntities.Length > 3)
+                {
+                    SetRemoteEntityActive(3);
+                }    
             }
             
-            if (InputManager.Instance.Alpha1Down && _playableEntities.Length > 1)
-            {
-                SetActiveEntity(1);
-            }
-            else if (InputManager.Instance.Alpha2Down && _playableEntities.Length > 2)
-            {
-                SetActiveEntity(2);
-            }
-            else if (InputManager.Instance.Alpha3Down && _playableEntities.Length > 3)
-            {
-                SetActiveEntity(3);
-            }
-            else if (InputManager.Instance.Alpha4Down && _playableEntities.Length > 4)
-            {
-                SetActiveEntity(4);
-            }
         }
         
         
