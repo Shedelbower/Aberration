@@ -16,8 +16,8 @@ namespace Project.Interactables
                 Initialize();
             }
         }
-        
-        protected virtual void Initialize() { }
+
+        protected virtual void Initialize() { _initialized = true; }
 
         public virtual void CancelInteraction() { }
 
