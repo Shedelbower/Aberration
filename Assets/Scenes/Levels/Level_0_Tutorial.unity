@@ -17143,6 +17143,7 @@ MonoBehaviour:
   _camera: {fileID: 1443293775}
   _walkSpeed: 3
   _sprintSpeed: 7
+  _groundedDrag: 1
   _jumpPower: 4
   _mouseSensitivityHorizontal: 2
   _mouseSensitivityVertical: 2

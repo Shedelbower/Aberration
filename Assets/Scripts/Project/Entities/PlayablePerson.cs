@@ -205,26 +205,26 @@ namespace Project.Entities
             if (isGrounded)
             {
                 // Set vertical velocity to 0 when hitting the ground.
-                var vel = _rb.velocity;
-                vel.y = 0.0f;
-                _rb.velocity = vel;   
+                SetVerticalVelocity(0.0f);
             }
         }
 
         private void HandleMovement()
         {
-            // TODO: Add to velocity instead of setting it
-            float groundedScale = _isGrounded ? 1.0f : 0.2f;
-            
             // Movement
             var forwardInput = InputManager.Instance.VerticalAxis;
             var rightInput = InputManager.Instance.HorizontalAxis;
 
+            bool isMoving = Mathf.Abs(forwardInput) > 0 || Mathf.Abs(rightInput) > 0;
+            if (!isMoving && !_isGrounded)
+            {
+                return;
+            }
             var moveDir = forwardInput * this.MovementForward + rightInput * this.MovementRight;
             moveDir = moveDir.normalized;
             var speed = InputManager.Instance.ShiftKey ? _sprintSpeed : _walkSpeed;
 
-            var newHorizontalVelocity = moveDir * speed * groundedScale;
+            var newHorizontalVelocity = moveDir * speed ;
             SetHorizontalVelocity(newHorizontalVelocity);
         }
 
