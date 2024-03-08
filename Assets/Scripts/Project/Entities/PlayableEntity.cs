@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Project.Entities
@@ -6,6 +5,7 @@ namespace Project.Entities
     public abstract class PlayableEntity : MonoBehaviour
     {
         public bool IsActive { get; set; }
+        public bool CameraIsRendering { get; set; }
         
         // TODO: Handle logic for when/if entity destroyed
 
@@ -22,22 +22,26 @@ namespace Project.Entities
         {
             if (this.IsActive) { return; }
             this.IsActive = true;
-            
-            if (!_isDefaultEntity) // default entity should always have its camera rendering
-            {
-                _camera.enabled = true;
-            }
         }
         
         public virtual void OnDeactivated()
         {
             if (!this.IsActive) { return; }
             this.IsActive = false;
-
-            if (!_isDefaultEntity) // default entity should always have its camera rendering
-            {
-                _camera.enabled = false;
-            }
+        }
+        
+        public virtual void OnCameraStartRendering()
+        {
+            if (this.CameraIsRendering) { return; }
+            this.CameraIsRendering = true;
+            _camera.enabled = true;
+        }
+        
+        public virtual void OnCameraStopRendering()
+        {
+            if (!this.CameraIsRendering || _isDefaultEntity) { return; }
+            this.CameraIsRendering = false;
+            _camera.enabled = false;
         }
         
     }

@@ -40,12 +40,14 @@ namespace Project
             {
                 _prevRemoteEntityIndex = _activeRemoteEntityIndex;
                 _remoteEntities[_activeRemoteEntityIndex].OnDeactivated();
-                _remoteEntities[_activeRemoteEntityIndex].IsActive = false;
                 _activeRemoteEntityIndex = -1;
             }
             
             _defaultEntity.OnActivated();
-            _defaultEntity.IsActive = true;
+            if (!_defaultEntity.CameraIsRendering)
+            {
+                _defaultEntity.OnCameraStartRendering();
+            }
         }
         
         private void SetRemoteEntityActive(int index)
@@ -54,8 +56,8 @@ namespace Project
             
             if (_defaultEntity.IsActive)
             {
+                // Deactivate player controls, but keep camera feed active
                 _defaultEntity.OnDeactivated();
-                _defaultEntity.IsActive = false;
             }
             
             if (!_tablet.TabletIsRaised)
@@ -63,19 +65,23 @@ namespace Project
                 RaiseTablet();
             }
 
+            PlayableEntity entity;
+
             if (_activeRemoteEntityIndex >= 0)
             {   
                 // Deactivate old remote entity
                 _prevRemoteEntityIndex = _activeRemoteEntityIndex;
-                _remoteEntities[_activeRemoteEntityIndex].OnDeactivated();
-                _remoteEntities[_activeRemoteEntityIndex].IsActive = false;
+                entity = _remoteEntities[_activeRemoteEntityIndex];
+                entity.OnDeactivated();
+                entity.OnCameraStopRendering();
                 _activeRemoteEntityIndex = -1;
             }
             
             // Activate new entity
             _activeRemoteEntityIndex = index;
-            _remoteEntities[_activeRemoteEntityIndex].OnActivated();
-            _remoteEntities[_activeRemoteEntityIndex].IsActive = true;
+            entity = _remoteEntities[_activeRemoteEntityIndex];
+            entity.OnActivated();
+            entity.OnCameraStartRendering();
         }
 
         private void RestorePreviousRemoteEntity()
