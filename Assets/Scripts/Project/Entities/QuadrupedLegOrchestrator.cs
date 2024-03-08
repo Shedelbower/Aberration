@@ -27,6 +27,7 @@ namespace Project.Entities
         [SerializeField] private QuadrupedLeg _legFR;
         [SerializeField] private QuadrupedLeg _legBL;
         [SerializeField] private QuadrupedLeg _legBR;
+        [SerializeField] private QuadrupedArm _arm;
         
         [Header("Debug")]
         
@@ -80,6 +81,8 @@ namespace Project.Entities
             _dependencies.Add(_legFR, new []{ _legFL, _legBR});
             _dependencies.Add(_legBL, new []{ _legFL, _legBR});
             _dependencies.Add(_legBR, new []{ _legFR, _legBL});
+            
+            _arm.Initialize();
         }
 
         public void OnUpdate()
@@ -97,6 +100,10 @@ namespace Project.Entities
             UpdateLegStatuses(dt);
             OrchestrateSteps();
             UpdateLegPositions(dt);
+            
+            _arm.UpdateStatus(dt);
+            _arm.UpdatePosition(dt);
+            _arm.UpdateIK();
 
             if (!_isRagdoll)
             {
