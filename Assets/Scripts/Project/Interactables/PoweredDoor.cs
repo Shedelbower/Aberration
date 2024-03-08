@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Unity.Mathematics;
 using Unity.VisualScripting;
@@ -20,7 +21,7 @@ namespace Project.Interactables
         [Header("Component References")]
         [SerializeField] private SignalNetwork<bool> _signalNetwork;
         
-        [SerializeField] private Transform _sensor;
+        [SerializeField] private Transform[] _obstructionDetectionZones;
         
         [SerializeField] private Transform[] _rotators;
         [SerializeField] private Transform[] _sides;
@@ -103,7 +104,7 @@ namespace Project.Interactables
             if (!_animationIsOpening)
             {
                 // If the door detects blockage while closing, then switch to be open.
-                if (DoorBlockedFromClosing())
+                if (DoorObstructed())
                 {
                     _signalNetwork.SetAndBroadcastSignal(true);
                 }
@@ -165,10 +166,21 @@ namespace Project.Interactables
             _animationIsOpening = opening;
         }
 
-        private bool DoorBlockedFromClosing()
+        private bool DoorObstructed()
         {
             int mask = ~LayerMask.GetMask("DoorSensorIgnore");
-            return Physics.CheckBox(_sensor.position, _sensor.localScale * 0.5f, _sensor.rotation, mask);
+
+            for (int zi = 0; zi < _obstructionDetectionZones.Length; zi++)
+            {
+                var zone = _obstructionDetectionZones[zi];
+                bool isObstructed = Physics.CheckBox(zone.position, zone.localScale * 0.5f, zone.rotation, mask);
+                if (isObstructed)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnOpenSignalChanged(bool isOpen)
@@ -176,6 +188,23 @@ namespace Project.Interactables
             UpdateOpenIndicators();
             BeginAnimation(isOpen);
         }
-        
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_obstructionDetectionZones != null)
+            {
+                Gizmos.color = new Color(247/255f, 114/255f, 12/255f);
+                for (int zi = 0; zi < _obstructionDetectionZones.Length; zi++)
+                {
+                    var zone = _obstructionDetectionZones[zi];
+                    if (zone == null)
+                    {
+                        continue;
+                    }
+                    // Note: This does not take rotation into account
+                    Gizmos.DrawCube(zone.position, zone.localScale);
+                }
+            }
+        }
     }
 }

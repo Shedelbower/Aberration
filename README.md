@@ -92,7 +92,7 @@
 5. [ ] Cloak warping effect for player visual?
  
 ### Rover
-1. [ ] IK Arm
+1. [x] IK Arm
    1. [ ] Interact with objects
 2. [ ] Fix IK leg issues
 3. [ ] Add auto flip correction when turned over
@@ -187,8 +187,8 @@
 
 ### Doors
 1. [ ] Add vertical sliding door that only quadruped can crawl under
-2. [ ] Add multiple check colliders, one for each side of door.
-3. [ ] Damage entities when shutting on them?
+2. [x] Add multiple check colliders, one for each side of door.
+3. [ ] Damage/push entities when shutting on them?
 
 ### Juice
 1. [ ] Add player camera shake

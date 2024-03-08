@@ -7043,6 +7043,37 @@ Transform:
   - {fileID: 578084334}
   m_Father: {fileID: 1070258156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &389594954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 389594955}
+  m_Layer: 0
+  m_Name: Obstruction Detection Zone (B)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &389594955
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389594954}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 1.25, z: 0}
+  m_LocalScale: {x: 0.1, y: 2.45, z: 0.089999974}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1854077287}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &392932746
 GameObject:
   m_ObjectHideFlags: 0
@@ -20778,7 +20809,6 @@ Transform:
   m_Children:
   - {fileID: 1432239907}
   - {fileID: 1854077287}
-  - {fileID: 2087097121}
   - {fileID: 804786265}
   - {fileID: 1985775548}
   m_Father: {fileID: 1060478045}
@@ -20848,7 +20878,9 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _signalNetwork: {fileID: 1044154636}
-  _sensor: {fileID: 2087097121}
+  _obstructionDetectionZones:
+  - {fileID: 2087097121}
+  - {fileID: 389594955}
   _rotators:
   - {fileID: 166110247}
   - {fileID: 1212546019}
@@ -30095,6 +30127,7 @@ Transform:
   m_Children:
   - {fileID: 1355304952}
   - {fileID: 1489314617}
+  - {fileID: 2087097121}
   m_Father: {fileID: 1044154634}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!43 &1435980679
@@ -39009,6 +39042,7 @@ Transform:
   m_Children:
   - {fileID: 197702808}
   - {fileID: 1096854107}
+  - {fileID: 389594955}
   m_Father: {fileID: 1044154634}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!43 &1860307369
@@ -44272,7 +44306,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2087097121}
   m_Layer: 0
-  m_Name: Check Box
+  m_Name: Obstruction Detection Zone (A)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44286,12 +44320,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2087097120}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 1.25, z: 0}
-  m_LocalScale: {x: 1.95, y: 2.45, z: 0.09}
+  m_LocalScale: {x: 0.1, y: 2.45, z: 0.08999998}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1044154634}
+  m_Father: {fileID: 1432239907}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &2089920922
 Mesh:
