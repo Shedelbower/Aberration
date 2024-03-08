@@ -57,7 +57,18 @@
 - Initial UI setup.
 - Didn't have much time this evening, so didn't make much progress.
 
+### Day 8
+*build 0.08.0*
+- Support dynamic syncing of playable entities to tablet device.
+- Added emergency lights that turn on when the power is off.
 
+### Day 9
+*build 0.09.0*
+- Added powered doors with interactable switches.
+  - Have a nice cancellable animation.
+  - Will detect any obstructions and refuse to close.
+- Other minor changes.
+- Didn't have much time this evening, but the doors feel nice.
 
 ## TODO
 1. [x] Swap entities using numbers 1-n
