@@ -70,6 +70,9 @@
 - Other minor changes.
 - Didn't have much time this evening, but the doors feel nice.
 
+
+
+
 ## TODO
 
 ### Level Design
@@ -93,7 +96,8 @@
  
 ### Rover
 1. [x] IK Arm
-   1. [ ] Interact with objects
+   1. [x] Interact with objects
+   2. [ ] Use time-based lerping for a nicer animation
 2. [ ] Fix IK leg issues
 3. [ ] Add auto flip correction when turned over
 

@@ -4,6 +4,14 @@ namespace Project.Entities
 {
     public class QuadrupedArm : MonoBehaviour
     {
+        private static readonly float TARGET_DISTANCE_THRESHOLD = 0.02f;
+        private static readonly float ARM_BASE_SPEED = 2f;
+        
+        public delegate void ReachEvent(bool didReachTarget);
+
+        private ReachEvent _reachEvent = null;
+        
+        
         [SerializeField] private float _upperLength = 0.5f;
         [SerializeField] private float _lowerLength = 0.5f;
         [SerializeField] private float _clawLength = 0.15f;
@@ -11,6 +19,7 @@ namespace Project.Entities
         [SerializeField] private Transform _upperBone;
         [SerializeField] private Transform _lowerBone;
         [SerializeField] private Transform _clawBone;
+        [SerializeField] private Transform _touchMarker;
         [SerializeField] private Transform _touchTarget;
 
         private Vector3 ShoulderPosition => _upperBone.position;
@@ -29,13 +38,25 @@ namespace Project.Entities
         private Vector3 _shoulderVelocity;
         private Vector3 _prevShoulderPosition;
 
-        private Vector3 TouchPosition { get; set; }
+        private Vector3 TouchPosition
+        {
+            get => _touchMarker.position;
+            set => _touchMarker.position = value;
+        }
+
+        [Header("Debug")]
+        [SerializeField] private bool _isReachingForTarget;
+        
+        private Vector3 _defaultTargetLocalPosition;
 
         private bool _initialized;
         public void Initialize()
         {
             _initialized = true;
-            // _touchTarget = new Vector3(0, 0.1f, 0.2f);
+            _defaultTargetLocalPosition = _touchTarget.localPosition;
+            _isReachingForTarget = true;
+            this.TouchPosition = _touchTarget.position;
+            UpdateIK();
         }
 
         public void UpdateStatus(float deltaTime)
@@ -46,18 +67,30 @@ namespace Project.Entities
 
         public void UpdatePosition(float deltaTime)
         {
+            if (!_isReachingForTarget) { return; }
+            
             // Move touch position towards touch target
             var toTarget = _touchTarget.position - this.TouchPosition;
+            var distToTarget = toTarget.magnitude;
+            
+            if (distToTarget <= TARGET_DISTANCE_THRESHOLD)
+            {
+                OnReachedTarget();
+            }
+            
             var targetDir = toTarget.normalized;
 
             float speed = GetNetSpeed(targetDir);
 
             float moveDist = Mathf.Min(speed * deltaTime, toTarget.magnitude);
             this.TouchPosition += moveDist * targetDir;
+            
         }
         
         public void UpdateIK()
         {
+            if (!_isReachingForTarget) { return; }
+            
             var shoulderToTarget = (_touchTarget.position - this.ShoulderPosition);
             shoulderToTarget.y = 0.0f;
             var targetDirHorizontal = shoulderToTarget.normalized;
@@ -125,12 +158,35 @@ namespace Project.Entities
 
         private float GetBaseSpeed()
         {
-            return 1f;
+            return ARM_BASE_SPEED;
         }
         
         private float GetNetSpeed(Vector3 targetDir)
         {
             return Vector3.Dot(targetDir, _shoulderVelocity) + GetBaseSpeed();
+        }
+
+        public void StartReachingForTarget(ReachEvent callback, Vector3 target)
+        {
+            _reachEvent = callback;
+            _isReachingForTarget = true;
+            _touchTarget.position = target;
+        }
+
+        private void OnReachedTarget()
+        {
+            _isReachingForTarget = false;
+            // Note: If I use the ?. operator, weird bugs happen...
+            if (_reachEvent != null)
+            {
+                _reachEvent.Invoke(true);
+            }
+        }
+
+        public void ResetArmTarget()
+        {
+            var defaultPos = _touchTarget.parent.TransformPoint(_defaultTargetLocalPosition);
+            StartReachingForTarget(null, defaultPos);
         }
         
         private void OnDrawGizmos()
@@ -138,11 +194,11 @@ namespace Project.Entities
             if (!_initialized) { return; }
             
             // Positions
-            Gizmos.color = Color.red;
+            Gizmos.color = !_isReachingForTarget ? new Color(77f/255, 36f/255, 26f/255) : Color.red;
             Gizmos.DrawCube(this.ShoulderPosition, Vector3.one * 0.05f);
-            Gizmos.color = Color.green;
+            Gizmos.color = !_isReachingForTarget ? new Color(26f/255, 77f/255, 26f/255) : Color.green;
             Gizmos.DrawCube(this.ElbowPosition, Vector3.one * 0.05f);
-            Gizmos.color = Color.blue;
+            Gizmos.color = !_isReachingForTarget ? new Color(20f/255, 36f/255, 77f/255) : Color.blue;
             Gizmos.DrawCube(this.ClawPosition, Vector3.one * 0.05f);
             Gizmos.color = Color.cyan;
             Gizmos.DrawCube(this.TouchPosition, Vector3.one * 0.05f);

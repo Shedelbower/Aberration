@@ -14,6 +14,10 @@ namespace Project
         
         private int _prevRemoteEntityIndex = -1;
         private int _activeRemoteEntityIndex = -1;
+
+        private bool _showingInteractionUI = false;
+        private Interactable _currentUIInteractable;
+        private int _interactionUIFrameCountDown;
         
         public void Initialize()
         {
@@ -113,6 +117,19 @@ namespace Project
             SetDefaultEntityActive();
         }
         
+        public void ShowInteractionUIFor(Interactable interactable)
+        {
+            _showingInteractionUI = true;
+            _currentUIInteractable = interactable;
+            _interactionUIFrameCountDown = 2; // Hacky way to disable UI once the entity gets out of range.
+        }
+
+        private void HideInteractionUI()
+        {
+            _showingInteractionUI = false;
+            _currentUIInteractable = null;
+        }
+        
 
         ////////////////////////////////////////////////////////////////////////
         //                          Unity Game Loop                           //
@@ -146,6 +163,18 @@ namespace Project
                 }    
             }
             
+        }
+        
+        private void LateUpdate()
+        {
+            if (_showingInteractionUI)
+            {
+                _interactionUIFrameCountDown--;
+                if (_interactionUIFrameCountDown <= 0)
+                {
+                    HideInteractionUI();
+                }
+            }
         }
         
         

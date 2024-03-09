@@ -8,6 +8,8 @@ namespace Project.Entities
     public class QuadrupedLegOrchestrator : MonoBehaviour
     {
         private static readonly float RAGDOLL_TIMER_DURATION = 0.5f; // amount of time with 0 legs grounded before going ragdoll
+
+        public QuadrupedArm Arm => _arm;
         
         [Header("Settings")]
         [SerializeField] private float _linearSpeed = 20f;
