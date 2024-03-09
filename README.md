@@ -73,7 +73,7 @@
 ## TODO
 
 ### Level Design
-1. [ ] Replace point lights with much more efficient spot lights
+1. [x] Replace point lights with much more efficient spot lights
 2. [ ] Find textures to replace gray box
 
 ### Player
