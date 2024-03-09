@@ -77,7 +77,7 @@
 2. [ ] Find textures to replace gray box
 
 ### Player
-1. [ ] Add small spot light around player (tablet light?)
+1. [x] Add small spot light around player (tablet light?)
    1. [ ] Sample pixels of screen for immersion?
 2. [ ] Crouch toggle (same button as quadruped)
 3. [ ] Lower collider to hit quadrupeds when standing
